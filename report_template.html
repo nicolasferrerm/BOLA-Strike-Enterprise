@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOLA Strike v7.0 — Enterprise Security Report</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --accent: #8b5cf6;
+            --accent2: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --card-bg: #1e293b;
+            --border: #334155;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
+        .header { text-align: center; padding: 40px 0; border-bottom: 2px solid var(--accent); margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 2.5em; color: var(--accent); letter-spacing: 2px; }
+        .header .subtitle { color: #94a3b8; margin-top: 6px; }
+        .summary { display: flex; justify-content: space-around; margin-bottom: 40px; gap: 12px; flex-wrap: wrap; }
+        .stat-box { background: var(--card-bg); padding: 20px; border-radius: 8px; text-align: center; flex: 1; min-width: 140px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid var(--border); }
+        .stat-box h3 { margin: 0 0 10px 0; color: #94a3b8; font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-box p { margin: 0; font-size: 2em; font-weight: bold; }
+
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #0f172a; color: var(--accent); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:hover { background: #334155; }
+
+        .badge { padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8em; display: inline-block; }
+        .badge.critical { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .badge.high { background: rgba(249,115,22,0.2); color: #f97316; border: 1px solid #f97316; }
+        .badge.medium { background: rgba(245,158,11,0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .badge.low { background: rgba(16,185,129,0.2); color: var(--success); border: 1px solid var(--success); }
+        .badge.vuln { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .badge.warn { background: rgba(245,158,11,0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .badge.secure { background: rgba(16,185,129,0.2); color: var(--success); border: 1px solid var(--success); }
+
+        .details-btn { background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8em; }
+        .details-btn:hover { background: var(--accent2); }
+        .poc-code { background: #000; padding: 12px; border-radius: 6px; font-family: monospace; color: #10b981; overflow-x: auto; margin-top: 8px; white-space: pre-wrap; font-size: 0.85em; }
+        .copy-btn { float: right; background: #334155; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+        .copy-btn:hover { background: #475569; }
+        .hidden { display: none; }
+        .row-details { background: #1e293b; border-bottom: 2px solid var(--accent); }
+
+        .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .tag { padding: 2px 8px; border-radius: 3px; font-size: 0.75em; font-weight: 600; }
+        .tag-owasp { background: #312e81; color: #a5b4fc; }
+        .tag-mitre { background: #7f1d1d; color: #fca5a5; }
+        .tag-cvss { background: #1e3a5f; color: #93c5fd; }
+        .tag-compliance { background: #064e3b; color: #6ee7b7; }
+        .tag-kev { background: #991b1b; color: #fef2f2; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .meta-item { background: #0f172a; padding: 8px 12px; border-radius: 4px; font-size: 0.85em; }
+        .meta-item .label { color: #94a3b8; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ BOLA Strike Enterprise</h1>
+        <div class="subtitle">DevSecOps Security Audit Report — v7.0 (Hardened Enterprise)</div>
+        <p><strong>Target:</strong> {{ target }} | <strong>Date:</strong> {{ date }}</p>
+    </div>
+
+    <div class="summary">
+        <div class="stat-box">
+            <h3>Endpoints Tested</h3>
+            <p>{{ total_endpoints }}</p>
+        </div>
+        <div class="stat-box">
+            <h3>Vulnerabilities</h3>
+            <p style="color: var(--danger)">{{ total_vulns }}</p>
+        </div>
+        <div class="stat-box">
+            <h3>Warnings</h3>
+            <p style="color: var(--warning)">{{ total_warnings }}</p>
+        </div>
+        <div class="stat-box">
+            <h3>Secure</h3>
+            <p style="color: var(--success)">{{ total_secure }}</p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Endpoint</th>
+                <th>Vic/Att</th>
+                <th>CVSS</th>
+                <th>Severity</th>
+                <th>Diagnosis</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in results %}
+            <tr>
+                <td><strong>{{ res.method }}</strong></td>
+                <td style="font-family:monospace;font-size:0.9em">{{ res.path }}</td>
+                <td>{{ res.base_status }} / {{ res.attack_status }}</td>
+                <td>
+                    {% if res.cvss %}
+                        <span class="badge {% if res.cvss.score >= 9 %}critical{% elif res.cvss.score >= 7 %}high{% elif res.cvss.score >= 4 %}medium{% else %}low{% endif %}">
+                            {{ "%.1f"|format(res.cvss.score) }}
+                        </span>
+                    {% else %}—{% endif %}
+                </td>
+                <td>
+                    {% if res.severity == "CRITICAL" %}
+                        <span class="badge critical">{{ res.severity }}</span>
+                    {% elif res.severity == "HIGH" %}
+                        <span class="badge high">{{ res.severity }}</span>
+                    {% elif res.severity == "MEDIUM" %}
+                        <span class="badge medium">{{ res.severity }}</span>
+                    {% else %}
+                        <span class="badge low">{{ res.severity }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if "VULNERABLE" in res.diagnosis %}
+                        <span class="badge vuln">{{ res.diagnosis }}</span>
+                    {% elif "WARNING" in res.diagnosis %}
+                        <span class="badge warn">{{ res.diagnosis }}</span>
+                    {% else %}
+                        <span class="badge secure">{{ res.diagnosis }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="details-btn" onclick="toggleDetails('details-{{ loop.index }}')">Details</button>
+                </td>
+            </tr>
+            <tr id="details-{{ loop.index }}" class="row-details hidden">
+                <td colspan="7" style="padding: 20px;">
+                    <h4 style="color: var(--accent); margin: 0 0 12px 0;">Enterprise Audit Details</h4>
+
+                    <div class="tag-row">
+                        {% if res.owasp %}
+                            <span class="tag tag-owasp">{{ res.owasp.id }} — {{ res.owasp.name }}</span>
+                        {% endif %}
+                        {% if res.mitre_attack %}
+                            <span class="tag tag-mitre">{{ res.mitre_attack.tactic }} / {{ res.mitre_attack.technique }}</span>
+                        {% endif %}
+                        {% if res.cvss %}
+                            <span class="tag tag-cvss">CVSS {{ "%.1f"|format(res.cvss.score) }} ({{ res.cvss.rating }})</span>
+                        {% endif %}
+                        {% if res.threat_intel and res.threat_intel.actively_exploited %}
+                            <span class="tag tag-kev">⚠ CISA KEV — Actively Exploited</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="meta-grid">
+                        <div class="meta-item"><div class="label">CWE Reference</div>{{ res.cwe }}</div>
+                        <div class="meta-item"><div class="label">Diff Ratio</div>{{ "%.1f"|format(res.diff_ratio * 100) }}%</div>
+                        {% if res.cvss %}
+                        <div class="meta-item"><div class="label">CVSS Vector</div><code>{{ res.cvss.vector }}</code></div>
+                        {% endif %}
+                        <div class="meta-item"><div class="label">Remediation</div>{{ res.remediation }}</div>
+                    </div>
+
+                    {% if res.compliance %}
+                    <div style="margin-top: 12px;">
+                        <div style="color: #94a3b8; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Regulatory Compliance</div>
+                        <div class="tag-row">
+                            {% for framework, detail in res.compliance.items() %}
+                                <span class="tag tag-compliance">{{ framework }}: {{ detail[:80] }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <h4 style="margin-top: 16px;">Proof of Concept (cURL)</h4>
+                    <button class="copy-btn" onclick="copyCode('curl-{{ loop.index }}')">Copy</button>
+                    <div class="poc-code" id="curl-{{ loop.index }}">{{ res.curl_poc }}</div>
+
+                    {% if res.mass_assignment_injected %}
+                    <h4 style="color: var(--warning); margin-top: 15px;">Mass Assignment Payloads Injected:</h4>
+                    <div class="poc-code" style="color: #f8fafc">{{ res.mass_assignment_injected | tojson }}</div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="text-align:center; padding:30px; color:#64748b; font-size:0.8em;">
+        BOLA Strike Enterprise v7.0 (Hardened Enterprise) | Report generated {{ date }} | CONFIDENTIAL
+    </div>
+
+    <script>
+        function toggleDetails(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+        function copyCode(id) {
+            const code = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(code).then(() => alert("PoC Copied!"));
+        }
+    </script>
+</body>
+</html>

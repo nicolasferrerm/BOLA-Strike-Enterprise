@@ -1,0 +1,98 @@
+# ============================================================
+# BOLA Strike Enterprise v7.0 — Configuration File
+# ============================================================
+
+# Target API Configuration
+target_api: "http://127.0.0.1:5000"
+
+# Target ID (Victim's resource identifier)
+target_id: 5050
+
+# -----------------------------------------------------------
+# Multi-Role IAM Configuration (Phase 2 — NxN Matrix Testing)
+# -----------------------------------------------------------
+# Define N roles. The fuzzer tests every cross-role combination.
+# Secrets can be read from environment variables via 'client_secret_env'.
+users:
+  admin:
+    name: "Admin User"
+    headers:
+      Authorization: "Bearer admin_jwt_token_here"
+
+  attacker:
+    name: "Alice (Attacker — Regular User)"
+    headers:
+      Authorization: "Bearer attacker_jwt_token_here"
+      X-API-Key: "alice-key"
+    # Dynamic OAuth2 (optional):
+    # auth_url: "http://backend:8000/api/v1/mock-idp/token"
+    # client_id: "bola_attacker"
+    # client_secret_env: "ATTACKER_CLIENT_SECRET"  # Read from env var
+
+  victim:
+    name: "Bob (Victim — Resource Owner)"
+    headers:
+      Authorization: "Bearer victim_jwt_token_here"
+      X-API-Key: "bob-key"
+
+  guest:
+    name: "Guest (Unauthenticated)"
+    headers: {}
+
+# -----------------------------------------------------------
+# Manual Endpoints (used when --openapi is NOT provided)
+# -----------------------------------------------------------
+endpoints:
+  - path: "/api/v1/users/5050/profile"
+    method: "GET"
+
+  - path: "/api/v1/invoices/5050"
+    method: "GET"
+
+  - path: "/api/v1/admin/users"
+    method: "GET"
+    is_admin: true  # Triggers BFLA detection
+
+  - path: "/api/v1/settings/update"
+    method: "POST"
+    body:
+      user_id: 5050
+      theme: "dark"
+      notifications: true
+
+# -----------------------------------------------------------
+# Integrations
+# -----------------------------------------------------------
+integrations:
+  # OWASP DefectDojo
+  defect_dojo:
+    enabled: false
+    url: "https://defectdojo.example.com"
+    api_key: ""
+    product_id: 1
+
+  # SOAR Webhook (Phase 3)
+  soar:
+    enabled: false
+    webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    platform: "slack"  # Options: slack, teams, generic
+    min_severity: "HIGH"  # Only alert on HIGH and CRITICAL
+    scan_id: "bola-strike-prod"
+
+  # Threat Intelligence Feeds (Phase 3)
+  threat_intel:
+    cisa_kev: true  # Auto-load CISA Known Exploited Vulnerabilities
+    otx_api_key: ""  # AlienVault OTX API key (optional)
+
+# -----------------------------------------------------------
+# WAF Evasion Engine (Phase 3)
+# -----------------------------------------------------------
+waf_evasion:
+  enabled: false
+  techniques:
+    - unicode
+    - case_swap
+    - null_byte
+    - hpp
+    - polymorphic
+    - whitespace

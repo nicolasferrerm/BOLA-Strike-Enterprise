@@ -1,0 +1,35 @@
+name: BOLA Strike Enterprise DevSecOps
+
+on:
+  pull_request:
+    branches: [ "main", "production" ]
+
+jobs:
+  bola-security-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install BOLA Strike Core
+        run: pip install -r requirements.txt
+
+      - name: Autonomous AI API Discovery & Fuzzing
+        run: |
+          # Executes the headless runner against the PR's infrastructure
+          # Enforces a strict $25,000 CAD Risk Appetite threshold
+          python cli_runner.py --target ./openapi.yaml --risk-appetite 25000.0
+        env:
+          ZERO_TRUST_TOKEN: ${{ secrets.BOLA_JWT_TOKEN }}
+
+      - name: Upload IaC Auto-Remediation Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: aws-waf-patches
+          path: iac_patches/
