@@ -34,7 +34,6 @@ def mutate_payload(payload: dict, target_id: str, ot_mode: bool = False) -> dict
         if depth > 20:
             return obj
         import re
-        import uuid
         
         if isinstance(obj, dict):
             new_obj = {}

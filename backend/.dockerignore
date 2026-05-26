@@ -1,0 +1,67 @@
+# =============================================================================
+# BOLA Strike Enterprise — Backend .dockerignore
+# Optimized build context for the Python/FastAPI backend container.
+# =============================================================================
+
+# --- Version Control ---
+.git
+.gitignore
+.gitattributes
+
+# --- Python Artifacts ---
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+dist/
+build/
+*.whl
+
+# --- Node.js (should not exist here, but defensive) ---
+node_modules
+
+# --- Frontend (not needed in backend container) ---
+frontend/
+
+# --- Environment & Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Output & Evidence (runtime-generated) ---
+evidence/
+reports/
+iac_patches/
+linkedin_evidence/
+
+# --- CI/CD & GitHub ---
+.github/
+
+# --- Documentation ---
+docs/
+*.md
+
+# --- IDE & Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Testing ---
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- Misc ---
+*.log
+*.bak
+*.tmp
+docker-compose*.yml
+prometheus/

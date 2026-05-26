@@ -3,7 +3,13 @@ BOLA Strike Enterprise — Evidence Locker (v7.0)
 Forensic-grade evidence preservation with SHA-256 integrity hashing.
 Addresses: Audit v2.0 Task 2.4
 """
-import json, hashlib, os, platform, getpass, datetime, re
+import json
+import hashlib
+import os
+import platform
+import getpass
+import datetime
+import re
 from typing import Dict, Any, List
 
 class EvidenceLocker:

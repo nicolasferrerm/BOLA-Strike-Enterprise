@@ -1,20 +1,28 @@
 """
-BOLA Strike Enterprise — FAIR-Model Executive Telemetry Pipeline (v10.0)
-Translates technical vulnerability findings into quantifiable financial risk (USD/CAD) 
+BOLA Strike Enterprise — FAIR-Model Executive Telemetry Pipeline (v12.0)
+
+Translates technical vulnerability findings into quantifiable financial risk (USD/CAD)
 using the Factor Analysis of Information Risk (FAIR) methodology.
-Exposes a GraphQL/REST interface for the CISO Dashboard.
+Exposes a REST interface for the CISO Dashboard.
 """
-import random
+import os
 import logging
-import jwt # PyJWT implementation
-from typing import Dict, Any, List
+
+import jwt  # PyJWT implementation
+from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, Header
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 class FAIRRiskCalculator:
-    def __init__(self):
+    """Factor Analysis of Information Risk (FAIR) engine.
+    
+    Computes Annualized Loss Expectancy (ALE) by crossing vulnerability
+    severity with asset criticality from a simulated CMDB.
+    """
+
+    def __init__(self) -> None:
         # Simulated CMDB (Configuration Management Database) integrations
         self.asset_criticality = {
             "payments-api": {"value_at_risk_cad": 5000000, "regulatory_fines_cad": 10000000},
@@ -64,10 +72,16 @@ async def calculate_risk(finding_data: Dict[str, Any], authorization: str = Head
         raise HTTPException(status_code=401, detail="Zero-Trust Policy Violation: Missing Bearer Token")
         
     token = authorization.split(" ")[1]
+    # JWT Verification — secret MUST be set via environment variable
+    JWT_SECRET = os.environ.get("CISO_JWT_SECRET", "CHANGE_ME_IN_PRODUCTION")
     try:
-        # Cryptographic verification of JWT Signature and Audience
-        # In a real environment, the public key is fetched from an OIDC JWKS endpoint
-        payload = jwt.decode(token, "SUPER_SECRET_PUBLIC_KEY_MOCK", algorithms=["HS256"], audience="ciso_dashboard")
+        jwt.decode(
+            token,
+            JWT_SECRET,
+            algorithms=["HS256"],
+            audience="ciso_dashboard",
+        )
+        logger.info("CISO telemetry: JWT verified successfully.")
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token Expired")
     except jwt.InvalidTokenError:

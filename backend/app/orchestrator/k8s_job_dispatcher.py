@@ -72,7 +72,7 @@ class K8sJobDispatcher:
         """
         for target in targets:
             job_id = uuid.uuid4().hex[:8]
-            manifest = self._generate_job_manifest(job_id, target)
+            self._generate_job_manifest(job_id, target)
             self.active_jobs[job_id] = {"target": target, "status": "DISPATCHED"}
             logger.info(f"[K8s Orchestrator] Dispatched ephemeral fuzzing pod bola-fuzz-{job_id}")
             # Mocking K8s API call

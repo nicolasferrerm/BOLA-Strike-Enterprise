@@ -12,7 +12,6 @@ Generates Board-Ready PDF reports with:
 Uses only stdlib + minimal dependencies (no wkhtmltopdf/weasyprint needed).
 Outputs a richly-formatted HTML file designed for browser Print-to-PDF.
 """
-import json
 import datetime
 import html
 from typing import List, Dict, Any
@@ -87,7 +86,7 @@ def generate_pdf_report(results: List[Dict[str, Any]], target_url: str = "",
         </div>
         """
 
-    html = f"""<!DOCTYPE html>
+    f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -156,5 +155,5 @@ def generate_pdf_report(results: List[Dict[str, Any]], target_url: str = "",
 </html>"""
 
     with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(html)
+        f.write(html_content)
     return output_path

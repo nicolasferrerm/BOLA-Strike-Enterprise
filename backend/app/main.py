@@ -1,8 +1,13 @@
+"""BOLA Strike Enterprise — FastAPI Application Entry Point."""
 import os
+from typing import Dict
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
+
 from app.api import endpoints
+from app.api import ciso_telemetry
 from app.version import __version__, __codename__
 
 app = FastAPI(
@@ -13,7 +18,10 @@ app = FastAPI(
 
 # CORS Configuration (F-011): Read allowed origins from environment for production flexibility.
 # Default restricts to the local frontend dev server.
-allowed_origins = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+allowed_origins = [
+    origin.strip()
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,12 +32,14 @@ app.add_middleware(
 )
 
 app.include_router(endpoints.router, prefix="/api/v1")
+app.include_router(ciso_telemetry.router, prefix="/api/v1", tags=["CISO Telemetry"])
 
-# Instrumentación de métricas de Prometheus
+# Prometheus Metrics Instrumentation
 Instrumentator().instrument(app).expose(app)
 
 @app.get("/")
-def read_root():
+def read_root() -> Dict[str, str]:
+    """Health check endpoint returning engine status."""
     return {
         "message": "BOLA Strike Engine is running",
         "version": __version__,

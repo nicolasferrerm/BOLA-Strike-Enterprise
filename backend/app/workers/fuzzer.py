@@ -1,20 +1,35 @@
+"""BOLA Strike Enterprise — Celery Fuzzer Worker.
+
+Distributed BOLA/IDOR vulnerability scanner executed as an async Celery task.
+Designed for horizontal scaling across multiple worker nodes.
+"""
+import concurrent.futures
 import json
-import time
-import requests
+import os
 import random
 import re
-from deepdiff import DeepDiff
+import time
+import xml.etree.ElementTree as ET
+from difflib import SequenceMatcher
+from typing import Any, Dict, List, Optional, Tuple
+
+import difflib
+import requests
+import urllib3
 from celery import Celery
+from deepdiff import DeepDiff
+
 from app.core.auth_manager import AuthManager
 from app.core.openapi_parser import OpenAPIParser
 from app.workers.payload_mutator import mutate_payload
-import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# SSL Verification: Enable in production, disable only for testing
+SSL_VERIFY = os.environ.get("BOLA_SSL_VERIFY", "false").lower() == "true"
+if not SSL_VERIFY:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Configuración de Celery usando Redis como Broker y Backend
+# Celery configuration using Redis as Broker and Backend
 # F-005 FIX: Read from environment variables (set by docker-compose.yml)
-import os
 celery_app = Celery(
     "fuzzer_worker",
     broker=os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0"),
@@ -32,10 +47,6 @@ def ast_json_diff(victim_content, attacker_content):
         a_json = json.loads(attacker_content)
     except json.JSONDecodeError:
         # Multi-Format Fallback: Structural XML/HTML DOM Diffing (O(N) Complexity)
-        import xml.etree.ElementTree as ET
-        import difflib
-        import re
-        
         v_str = victim_content.decode('utf-8') if isinstance(victim_content, bytes) else str(victim_content)
         a_str = attacker_content.decode('utf-8') if isinstance(attacker_content, bytes) else str(attacker_content)
         
@@ -80,9 +91,12 @@ def ast_json_diff(victim_content, attacker_content):
     if 'values_changed' in diff and len(diff) == 1: return 0.95
     return 0.5
 
-def safe_request(method, url, **kwargs):
-    """Ejecuta una petición con Exponential Backoff anti-WAF y resiliencia de red global"""
-    import random
+def safe_request(method: str, url: str, **kwargs) -> requests.Response:
+    """Execute an HTTP request with exponential backoff and anti-WAF resilience.
+
+    Retries up to 3 times on rate-limit (429) or connection errors.
+    Always returns a Response object (never None) for crash safety.
+    """
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -92,16 +106,21 @@ def safe_request(method, url, **kwargs):
                 time.sleep(sleep_time)
                 continue
             return res
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             if attempt == max_retries - 1:
-                # Mock a 503 response so the engine doesn't crash but logs the failure
                 class DummyResponse:
+                    """Fallback response when all retries are exhausted."""
                     status_code = 503
                     content = b'{}'
                 return DummyResponse()
             sleep_time = (2 ** attempt) + random.uniform(0.5, 2.0)
             time.sleep(sleep_time)
-    return None
+    # Guaranteed fallback — safe_request NEVER returns None
+    class DummyResponse:
+        """Fallback response for 429 exhaustion."""
+        status_code = 503
+        content = b'{}'
+    return DummyResponse()
 
 @celery_app.task(bind=True)
 def run_bola_fuzz(self, target_data: dict):

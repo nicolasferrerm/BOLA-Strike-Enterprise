@@ -62,7 +62,7 @@ class LLMPayloadGenerator:
                     llm_response = self._query_local_llm(prompt)
                     data = json.loads(llm_response)
                     payload[param_name] = data.get("suggested_payloads", ["1"])[0]
-                except Exception as e:
+                except Exception:
                     logger.warning(f"[LLM] Inference failed for {param_name}, falling back to generic payload.")
                     payload[param_name] = "1" if param_type == "number" else "admin"
                     

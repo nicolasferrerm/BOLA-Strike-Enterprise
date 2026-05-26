@@ -3,7 +3,6 @@ BOLA Strike Enterprise — Shadow API Discovery (v9.0)
 Parses network traffic logs (e.g., PCAP exports, NGINX/Envoy JSON logs) 
 to discover undocumented endpoints and schema structures without OS kernel access.
 """
-import json
 import re
 import logging
 from typing import List, Dict, Any

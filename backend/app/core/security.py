@@ -7,10 +7,9 @@ Addresses: F-001 (Hardcoded Secrets), F-002 (Missing Auth & Rate Limiting)
 import os
 import time
 import hmac
-import hashlib
 import logging
 from collections import defaultdict
-from fastapi import HTTPException, Security, Request, Depends
+from fastapi import HTTPException, Security, Request
 from fastapi.security import APIKeyHeader
 
 logger = logging.getLogger(__name__)
@@ -45,7 +44,7 @@ async def verify_api_key(api_key: str = Security(API_KEY_HEADER)):
     
     expected_key = _get_api_key()
     if not hmac.compare_digest(api_key.encode('utf-8', 'ignore'), expected_key.encode('utf-8', 'ignore')):
-        logger.warning(f"[SecurityModule] Rejected invalid API key attempt.")
+        logger.warning("[SecurityModule] Rejected invalid API key attempt.")
         raise HTTPException(
             status_code=403,
             detail="Invalid API Key. Access denied."
@@ -96,7 +95,7 @@ async def check_scan_rate_limit(request: Request):
     client_ip = request.client.host if request.client else "unknown"
     
     if not scan_rate_limiter.is_allowed(client_ip):
-        remaining = scan_rate_limiter.remaining(client_ip)
+        scan_rate_limiter.remaining(client_ip)
         logger.warning(f"[RateLimiter] Rate limit exceeded for IP: {client_ip}")
         raise HTTPException(
             status_code=429,

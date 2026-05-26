@@ -8,14 +8,13 @@ Sends standardized webhook payloads to SOAR platforms for automated incident res
 - Microsoft Sentinel Playbooks
 - Generic webhook (Slack, Teams, PagerDuty)
 """
-import json
 import requests
 import logging
 import socket
 import ipaddress
 from urllib.parse import urlparse
 import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from app.version import __version__
 
 logger = logging.getLogger(__name__)

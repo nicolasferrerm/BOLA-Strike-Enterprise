@@ -8,7 +8,6 @@ Discovers and fuzzes GraphQL APIs for authorization vulnerabilities:
 - Mutation authorization bypass (BOLA on GraphQL mutations)
 - Field-level authorization testing
 """
-import json
 import requests
 import logging
 from typing import Dict, Any, List, Optional

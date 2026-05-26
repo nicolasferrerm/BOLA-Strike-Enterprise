@@ -1,5 +1,6 @@
 """
-BOLA Strike Enterprise — API Endpoints (v7.0)
+BOLA Strike Enterprise — API Endpoints (v12.0)
+
 Hardened: Auth required, rate limited, timing-safe IdP mock.
 Addresses: F-001, F-002
 """
@@ -8,11 +9,13 @@ import os
 import hmac
 import time
 import logging
-from fastapi import APIRouter, Depends, Request
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
-from app.workers.fuzzer import celery_app, run_bola_fuzz
+
+from app.workers.fuzzer import run_bola_fuzz
 from app.core.security import verify_api_key, check_scan_rate_limit
 
 logger = logging.getLogger(__name__)
@@ -31,7 +34,7 @@ class ScanResponse(BaseModel):
     status: str
 
 @router.post("/scan/start", response_model=ScanResponse, dependencies=[Depends(verify_api_key), Depends(check_scan_rate_limit)])
-def start_scan(target: ScanTarget):
+def start_scan(target: ScanTarget) -> Dict[str, str]:
     """
     Launch a distributed BOLA fuzzing scan.
     Requires X-API-Key header. Rate limited to 10 scans/hour per IP.
@@ -45,7 +48,7 @@ def start_scan(target: ScanTarget):
     }
 
 @router.get("/scan/status/{task_id}", dependencies=[Depends(verify_api_key)])
-def get_scan_status(task_id: str):
+def get_scan_status(task_id: str) -> Dict[str, Any]:
     """
     Poll the status of a running or completed fuzzing task.
     Requires X-API-Key header.
@@ -72,7 +75,9 @@ def mock_idp_token(request: TokenRequest):
     - Comparison uses hmac.compare_digest() to prevent timing attacks.
     - Returns proper HTTP 401 on failure.
     """
-    expected_secret = os.environ.get("IDP_CLIENT_SECRET", "dev-secret-change-in-production")
+    expected_secret = os.environ.get("IDP_CLIENT_SECRET")
+    if not expected_secret:
+        raise ValueError("IDP_CLIENT_SECRET environment variable must be set.")
     
     # Timing-safe comparison to prevent side-channel attacks
     if hmac.compare_digest(request.client_secret, expected_secret):

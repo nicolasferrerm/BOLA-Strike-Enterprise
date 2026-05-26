@@ -11,9 +11,7 @@ Polymorphic payload transformation engine to bypass WAF/RASP signatures:
 - Payload polymorphism (randomized MA values per execution)
 """
 import secrets
-import string
 import copy
-import json
 from typing import Dict, Any, Optional, List
 
 

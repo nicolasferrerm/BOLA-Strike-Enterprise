@@ -1,5 +1,3 @@
-import requests
-import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,10 +16,6 @@ class DefectDojoExporter:
             return
             
         logger.info(f"Exporting {len(results)} results to DefectDojo...")
-        headers = {
-            "Authorization": f"Token {self.api_key}",
-            "Content-Type": "application/json"
-        }
         
         # Simplified import structure for custom JSON format
         payload = {

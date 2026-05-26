@@ -5,8 +5,12 @@ Addresses: Audit v2.0 Task 2.2
 Supports N configurable roles (not just attacker/victim) for NxN access matrix testing.
 Automatically renews OAuth2/OIDC tokens with anti-stampede distributed locking.
 """
-import time, os, requests, logging, threading
-from typing import Dict, Any, Optional
+import time
+import os
+import requests
+import logging
+import threading
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 

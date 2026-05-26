@@ -4,7 +4,6 @@ Simulates an eBPF/Envoy WASM filter that passively intercepts microservice
 traffic within a Kubernetes mesh (e.g., Istio) to discover dynamic schemas 
 and inject BOLA payloads without relying on static OpenAPI definitions.
 """
-import json
 import re
 import logging
 from typing import Dict, Any, List

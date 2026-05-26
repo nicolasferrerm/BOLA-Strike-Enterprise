@@ -9,7 +9,14 @@ Analyzes JWT tokens for common security misconfigurations:
 - Sensitive PII in payload claims
 - Missing security claims (iss, aud, iat, exp)
 """
-import base64, json, time, logging, re, os, hmac, hashlib
+import base64
+import json
+import time
+import logging
+import re
+import os
+import hmac
+import hashlib
 from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)

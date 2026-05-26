@@ -8,7 +8,7 @@ Provides a centralized taxonomy engine that enriches every finding with:
 - Regulatory compliance mapping (PCI-DSS, SOC2, GDPR, ISO 27001)
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import re
 
 # --- OWASP API Security Top 10 (2023) ---
