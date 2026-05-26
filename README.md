@@ -8,60 +8,93 @@
 
 *(Versión en español disponible en [README_es.md](README_es.md))*
 
-## 1. Executive Overview
-BOLA Strike Enterprise is a God-Level, AI-driven DevSecOps platform engineered to obliterate Broken Object Level Authorization (BOLA/IDOR) vulnerabilities before they reach production. Transitioning far beyond standard vulnerability scanning, it provides an autonomous defense-in-depth architecture specifically tailored for Tier-1 corporate environments (e.g., Canadian Energy, Banking, and Telecommunications sectors).
+Welcome to BOLA Strike Enterprise! This platform is designed to find and fix the most dangerous API vulnerability on the internet today: **Broken Object Level Authorization (BOLA/IDOR)**. 
 
-It automatically discovers API schemas, synthesizes advanced persistent threats (APTs) using polymorphic AI, translates cyber risks into Board-level financial metrics (FAIR), and achieves zero-latency self-healing via kernel-level packet manipulation.
-
-## 2. Core Capabilities & Architecture (Phases 1-12)
-
-### 2.1. Discovery & State Machine Reconnaissance
-*   **Shadow API Parser:** Dynamically ingests OpenAPI/Swagger and GraphQL schemas to map undocumented endpoints.
-*   **Service Mesh Interceptor:** Hooks into Istio/Envoy telemetry streams to discover microservices actively routing traffic, eliminating the need for developer-provided documentation.
-*   **DAG State Machine Fuzzer:** Translates API interactions into a Directed Acyclic Graph (DAG) to chain multi-step attacks (e.g., `Create User -> Get Token -> Attack Resource`).
-
-### 2.2. Autonomous Offensive AI
-*   **LLM Contextual Payload Generator:** Utilizes an integrated Neural Core (Mock Ollama/Llama) to semantically analyze parameter names (e.g., `tenant_id`) and generate highly contextual, logic-driven malicious payloads.
-*   **JWT Offline Cracking & Auditing:** Audits JSON Web Tokens for weak secrets and algorithmic downgrade attacks (`alg: none`), manipulating claims to test zero-trust boundaries.
-*   **Advanced WAF Evasion:** Automatically obfuscates payloads (Unicode encoding, chunked transfer) to bypass traditional Web Application Firewalls.
-
-### 2.3. Zero-Latency Defense & Deception
-*   **eBPF/XDP Hyper-Speed Healer:** Deploys eBPF bytecode directly into the Linux kernel network stack (NIC). Upon zero-day detection, malicious packets are dropped in nanoseconds, providing absolute DDoS immunity without application latency.
-*   **Polymorphic Deception (Red/Blue Neural Core):** Synthesizes dynamic micro-honeypots. As attackers probe the perimeter, fake endpoints mutate to trap APT actors, isolating them in Kubernetes sandboxes while extracting their Tactics, Techniques, and Procedures (TTPs).
-
-### 2.4. Executive Telemetry & Compliance
-*   **FAIR Financial Telemetry (CISO Dashboard):** Replaces abstract CVSS scores with the Factor Analysis of Information Risk (FAIR) model, quantifying vulnerabilities in hard currency (e.g., Annualized Loss Expectancy in CAD/USD).
-*   **Quantum-Ready Immutable Ledger:** All security artifacts, logs, and telemetry are anchored to an internal blockchain (Hyperledger Fabric mock) utilizing NIST-standardized Post-Quantum Cryptography (CRYSTALS-Kyber/Dilithium) to guarantee OSFI-compliant non-repudiation.
-*   **Enterprise Integrations:** Exports intelligence to SIEM/SOAR platforms via ArcSight CEF, SARIF, and automated AWS WAF IaC (Terraform) patches.
-
-## 3. Expert Usage Guide
-
-### 3.1. Local Auditing (Security Engineers)
-To run a targeted BOLA audit against a specific API specification:
-```bash
-python bola_strike.py --swagger https://api.enterprise.corp/v1/openapi.json --depth 5 --enable-ai
-```
-*   `--depth 5`: Defines the state machine traversal limit (prevents infinite recursion/RAM bombs).
-*   `--enable-ai`: Triggers the LLM Contextual Generator for semantic payload construction.
-
-### 3.2. CI/CD Pipeline Automation (DevSecOps)
-BOLA Strike embeds directly into GitHub Actions / GitLab CI as a security gate. It uses a headless CLI runner that automatically blocks deployments if the FAIR financial risk exceeds the corporate appetite.
-```bash
-# Executed within a containerized CI runner
-python cli_runner.py --target ./openapi.yaml --method ALL
-```
-*Note: The `--risk-appetite` threshold is locked server-side via PyJWT-authenticated ConfigMaps to prevent pipeline tampering.*
-
-### 3.3. Kubernetes Distributed Orchestration
-For massive, enterprise-wide API sweeps, the Orchestrator dispatches ephemeral fuzzing jobs (Pods) across the cluster.
-1. Deploy the Helm chart to the `secops-fuzzing` namespace.
-2. The `k8s_job_dispatcher.py` will mount CSI Secrets (mTLS certificates) and spawn hundreds of parallel fuzzers under strict `runAsNonRoot` policies.
-
-## 4. Security & Zero Trust Architecture
-BOLA Strike is built upon a strict "Never Trust, Always Verify" perimeter:
-*   **Identity:** All internal API calls (e.g., CISO Telemetry) mandate valid PyJWT Bearer tokens.
-*   **Workload Isolation:** Fuzzing nodes run on read-only filesystems with `automountServiceAccountToken` set to false.
-*   **Data Integrity:** Artifacts are cryptographically hashed (SHA-256) into the Evidence Locker before quantum-ledger anchoring.
+While the technology inside is built for elite cybersecurity experts (using AI and Kernel-level defenses), we've designed this guide to be as easy to follow as possible, even if you are new to DevSecOps!
 
 ---
-*Developed by Nicolas Ferrer | Chief Security Architect & CISO Consultant*
+
+## 🚀 Quick Start Guide (For Beginners)
+
+Want to see it in action quickly? Follow these simple steps to run a local audit on an API.
+
+### Prerequisites
+You only need two things installed on your computer:
+1. **Python 3.10+** (Download from python.org)
+2. **Git** (To clone this repository)
+
+### Step 1: Install the tool
+Open your terminal (or Command Prompt) and run these commands:
+```bash
+# Clone the repository
+git clone https://github.com/nicolasferrer/bola-strike-enterprise.git
+cd bola-strike-enterprise/Tools/API_Logic_Fuzzer
+
+# Install required Python packages
+pip install -r requirements.txt
+```
+
+### Step 2: Run your first API Scan
+Let's pretend you want to test a development API at `http://localhost:8000/openapi.json`. Run this command:
+```bash
+python bola_strike.py --target http://localhost:8000/openapi.json --method ALL --depth 3
+```
+**What just happened?**
+The tool read your API documentation, figured out all the endpoints (like `/users` or `/invoices`), and tried to hack them by crossing user IDs to see if User A can delete User B's data!
+
+---
+
+## 📖 How to Use it Like a Pro (Advanced Modes)
+
+BOLA Strike can do much more than a simple scan. Here are the 3 main ways to use it:
+
+### 1. The Ethical Hacker Mode (Local Execution)
+If you are testing an API and want to use our **Artificial Intelligence** to generate smart attacks:
+```bash
+python bola_strike.py --target https://api.yourcompany.com/v1/swagger.yaml \
+                      --enable-ai \
+                      --evasion-level aggressive \
+                      --export-pdf my_report.pdf
+```
+*   `--enable-ai`: Turns on the AI. Instead of sending random garbage data, the AI reads your API and generates realistic UUIDs, emails, and financial data.
+*   `--evasion-level aggressive`: Hides the attack from Web Application Firewalls (WAF) using clever encoding.
+*   `--export-pdf`: Generates a beautiful PDF report you can give to your boss.
+
+### 2. The DevSecOps Mode (CI/CD Pipelines)
+You can set up BOLA Strike to automatically test every code change before it goes live. Add this to your GitHub Actions (`.github/workflows/bola_strike.yml`):
+```yaml
+      - name: Run BOLA Strike Security Gate
+        run: python cli_runner.py --target ./openapi.yaml
+        env:
+          ZERO_TRUST_TOKEN: ${{ secrets.MY_SECRET_TOKEN }}
+```
+**How it works:** If a developer accidentally writes vulnerable code, BOLA Strike calculates how much money the company could lose (in Dollars). If the risk is too high, it **cancels the deployment** instantly!
+
+### 3. The Cloud Architect Mode (Kubernetes)
+If you have a massive company with hundreds of APIs in Kubernetes:
+```bash
+helm install bola-strike ./kubernetes/bola-strike-helm-chart -n secops
+```
+**How it works:** The tool will launch hundreds of tiny, invisible "pods" in your cloud. They will swarm your network, test every single microservice simultaneously, report the vulnerabilities, and then delete themselves without a trace.
+
+---
+
+## 🧠 What Makes BOLA Strike "God-Level"? (The 12 Phases Explained Simply)
+
+Behind the scenes, the platform is running 12 incredibly advanced phases. Here is what they do in plain English:
+
+1. **API Discovery:** It finds hidden or undocumented APIs by listening to your network traffic.
+2. **State Machine Fuzzing:** It doesn't just attack one page. It learns to "Create a user -> Log in -> Add item to cart -> Try to steal someone else's cart".
+3. **GraphQL Support:** It can hack modern GraphQL databases just as easily as traditional REST APIs.
+4. **JWT Cracking:** It tries to forge login tokens (JSON Web Tokens) to trick the system into thinking it is the Admin.
+5. **WAF Evasion:** It acts like a ninja, sneaking past firewalls like Cloudflare.
+6. **Executive Reporting:** It creates reports for developers (SARIF) and for SIEMs (ArcSight CEF).
+7. **Service Mesh Integration:** It connects directly to your cloud router (Envoy/Istio).
+8. **Generative AI (LLM):** It uses AI to think like a human hacker.
+9. **Financial Risk (FAIR):** It doesn't just say "High Risk". It says "This bug could cost us $150,000 CAD in fines".
+10. **Auto-Remediation:** It writes code (Terraform) to patch the firewall automatically while your developers fix the bug.
+11. **eBPF Kernel Healer:** If it detects a live attack, it drops the hacker's connection instantly at the computer's network card, meaning 0 latency and 0 lag for your real users.
+12. **Quantum Ledger:** It saves all audit logs into a private blockchain using Post-Quantum cryptography. This means even a supercomputer in the year 2035 couldn't alter your security logs.
+
+---
+**Developed by Nicolas Ferrer** | *Chief Security Architect & DevSecOps Strategist*

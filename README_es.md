@@ -8,60 +8,93 @@
 
 *(English version available in [README.md](README.md))*
 
-## 1. Resumen Ejecutivo
-BOLA Strike Enterprise es una plataforma DevSecOps "Nivel Dios", impulsada por Inteligencia Artificial, diseñada para aniquilar vulnerabilidades de Autorización a Nivel de Objeto (BOLA/IDOR) antes de que alcancen entornos de producción. Evolucionando mucho más allá de un escáner tradicional, proporciona una arquitectura autónoma de defensa en profundidad diseñada específicamente para corporaciones Tier-1 (ej. sectores de Energía, Banca y Telecomunicaciones en Canadá).
+¡Bienvenido a BOLA Strike Enterprise! Esta plataforma está diseñada para encontrar y neutralizar la vulnerabilidad de API más peligrosa de internet hoy en día: **Broken Object Level Authorization (BOLA/IDOR)**.
 
-Descubre automáticamente esquemas de API, sintetiza Amenazas Persistentes Avanzadas (APTs) usando IA polimórfica, traduce riesgos cibernéticos en métricas financieras para juntas directivas (modelo FAIR) y logra una auto-remediación de latencia cero mediante manipulación de paquetes a nivel de kernel.
-
-## 2. Capacidades Principales y Arquitectura (Fases 1-12)
-
-### 2.1. Descubrimiento y Reconocimiento de Máquinas de Estado
-*   **Shadow API Parser:** Ingiere dinámicamente esquemas OpenAPI/Swagger y GraphQL para mapear endpoints no documentados.
-*   **Service Mesh Interceptor:** Se ancla a flujos de telemetría de Istio/Envoy para descubrir microservicios activos, eliminando la necesidad de documentación técnica provista por humanos.
-*   **DAG State Machine Fuzzer:** Traduce las interacciones de API en un Grafo Acíclico Dirigido (DAG) para encadenar ataques transaccionales complejos (ej. `Crear Usuario -> Obtener Token -> Atacar Recurso`).
-
-### 2.2. IA Ofensiva Autónoma
-*   **Generador Contextual LLM:** Utiliza un Núcleo Neuronal (Mock Ollama/Llama) para analizar semánticamente los nombres de los parámetros (ej. `tenant_id`) y generar cargas maliciosas contextuales basadas en la lógica de negocio.
-*   **Auditoría y Cracking Offline de JWT:** Evalúa JSON Web Tokens buscando secretos débiles y ataques de degradación de algoritmos (`alg: none`), manipulando privilegios para quebrar los perímetros de Zero Trust.
-*   **Evasión Avanzada de WAF:** Ofusca automáticamente los payloads (Codificación Unicode, Transferencia Chunked) para evadir firewalls de aplicaciones web tradicionales.
-
-### 2.3. Defensa de Latencia Cero y Engaño
-*   **Hyper-Speed Healer (eBPF/XDP):** Despliega código eBPF directamente en la pila de red del kernel de Linux (tarjeta de red). Al detectar un Zero-Day, los paquetes maliciosos son descartados en nanosegundos, otorgando inmunidad absoluta contra DDoS sin latencia aplicacional.
-*   **Decepción Polimórfica (Núcleo Red/Blue):** Sintetiza micro-honeypots dinámicos. Cuando los atacantes sondean el perímetro, endpoints falsos mutan para atrapar a los actores APT, aislándolos en sandboxes de Kubernetes para extraer sus Tácticas, Técnicas y Procedimientos (TTPs).
-
-### 2.4. Telemetría Ejecutiva y Cumplimiento
-*   **Telemetría Financiera FAIR (Dashboard CISO):** Reemplaza las métricas técnicas CVSS por el modelo FAIR, cuantificando la vulnerabilidad en moneda dura (Expectativa de Pérdida Anualizada en CAD/USD).
-*   **Ledger Inmutable Post-Cuántica:** Todos los artefactos de seguridad se anclan a una cadena de bloques interna (Hyperledger) utilizando criptografía estandarizada por el NIST (CRYSTALS-Kyber/Dilithium) para garantizar el no-repudio total (Compliance OSFI).
-*   **Integraciones Empresariales:** Exporta inteligencia a plataformas SIEM vía ArcSight CEF y despliega parches de Infraestructura como Código (IaC - Terraform) automáticamente a AWS WAF.
-
-## 3. Guía de Uso para Expertos
-
-### 3.1. Auditoría Local (Ingenieros de Seguridad)
-Para ejecutar una auditoría BOLA profunda contra una especificación API:
-```bash
-python bola_strike.py --swagger https://api.enterprise.corp/v1/openapi.json --depth 5 --enable-ai
-```
-*   `--depth 5`: Define el límite de recursión en el grafo (previene desbordamientos de memoria RAM).
-*   `--enable-ai`: Activa el motor LLM para construir ataques semánticos.
-
-### 3.2. Automatización en CI/CD (DevSecOps)
-BOLA Strike se incrusta en GitHub Actions / GitLab CI como una compuerta de seguridad estricta (Security Gate).
-```bash
-# Ejecutado dentro de un runner efímero (Container)
-python cli_runner.py --target ./openapi.yaml --method ALL
-```
-*Nota: El umbral de Apetito de Riesgo (`--risk-appetite`) está bloqueado a nivel de servidor backend y validado mediante PyJWT para prevenir manipulaciones en el pipeline.*
-
-### 3.3. Orquestación Distribuida en Kubernetes
-Para auditorías a escala global, el orquestador K8s despacha pods de ataque efímeros en paralelo.
-1. Desplegar el Helm Chart en el namespace `secops-fuzzing`.
-2. El `k8s_job_dispatcher.py` montará los certificados mTLS vía CSI Secrets Store y ejecutará cientos de instancias de fuzzing bajo políticas estrictas de `runAsNonRoot`.
-
-## 4. Arquitectura de Seguridad y Zero Trust
-BOLA Strike está cimentado en el perímetro de "Nunca Confiar, Siempre Verificar":
-*   **Identidad:** Toda petición interna (ej. API FAIR) requiere tokens PyJWT firmados criptográficamente.
-*   **Aislamiento de Cargas:** Los nodos operan con sistemas de archivos de solo lectura y sin auto-montaje de tokens K8s (`automountServiceAccountToken: false`).
-*   **Integridad de Datos:** Todo reporte es codificado en SHA-256 dentro del *Evidence Locker* antes de ser firmado por la cadena de bloques cuántica.
+Aunque la tecnología interna está construida para expertos élite en ciberseguridad (usando IA y defensas a nivel de Kernel), hemos diseñado esta guía para que sea **muy fácil de seguir**, ¡incluso si eres nuevo en el mundo de DevSecOps!
 
 ---
-*Desarrollado por Nicolas Ferrer | Arquitecto Principal de Ciberseguridad & Estratega DevSecOps*
+
+## 🚀 Guía de Inicio Rápido (Para Principiantes)
+
+¿Quieres ver cómo funciona rápidamente? Sigue estos sencillos pasos para escanear una API en tu computadora.
+
+### Requisitos Previos
+Solo necesitas tener dos cosas instaladas en tu equipo:
+1. **Python 3.10+** (Descárgalo desde python.org)
+2. **Git** (Para descargar este proyecto)
+
+### Paso 1: Instalar la Herramienta
+Abre tu terminal (o consola de comandos) y ejecuta lo siguiente:
+```bash
+# Descarga el repositorio a tu computadora
+git clone https://github.com/nicolasferrer/bola-strike-enterprise.git
+cd bola-strike-enterprise/Tools/API_Logic_Fuzzer
+
+# Instala las dependencias necesarias de Python
+pip install -r requirements.txt
+```
+
+### Paso 2: Tu Primer Escaneo
+Imagina que quieres probar una API de desarrollo que está en `http://localhost:8000/openapi.json`. Ejecuta este comando:
+```bash
+python bola_strike.py --target http://localhost:8000/openapi.json --method ALL --depth 3
+```
+**¿Qué acaba de pasar?**
+La herramienta leyó la documentación de tu API, descubrió todas las rutas (como `/usuarios` o `/facturas`), e intentó hackearlas cruzando IDs para ver si el Usuario A podía borrar los datos del Usuario B. ¡Así de simple!
+
+---
+
+## 📖 Cómo Usarla como un Profesional (Modos Avanzados)
+
+BOLA Strike puede hacer mucho más que un escaneo simple. Aquí están las 3 formas principales de usarla en una empresa:
+
+### 1. El Modo Hacker Ético (Uso Local)
+Si estás probando una API y quieres usar nuestra **Inteligencia Artificial** para generar ataques inteligentes:
+```bash
+python bola_strike.py --target https://api.tuempresa.com/v1/swagger.yaml \
+                      --enable-ai \
+                      --evasion-level aggressive \
+                      --export-pdf mi_reporte.pdf
+```
+*   `--enable-ai`: Enciende la IA. En lugar de enviar texto basura aleatorio, la IA lee tu API y genera IDs, correos y datos financieros falsos pero muy realistas.
+*   `--evasion-level aggressive`: Oculta el ataque para que los Firewalls (WAF) no te detecten ni te bloqueen.
+*   `--export-pdf`: Genera un reporte PDF hermoso y profesional listo para entregar a tu jefe o cliente.
+
+### 2. El Modo DevSecOps (Automatización CI/CD)
+Puedes configurar BOLA Strike para que pruebe automáticamente todo el código nuevo *antes* de que salga al público. Solo agrega esto a tu GitHub Actions:
+```yaml
+      - name: Ejecutar Filtro de Seguridad BOLA Strike
+        run: python cli_runner.py --target ./openapi.yaml
+        env:
+          ZERO_TRUST_TOKEN: ${{ secrets.MI_TOKEN_SECRETO }}
+```
+**¿Cómo funciona?** Si un programador escribe código vulnerable por accidente, BOLA Strike calcula cuánto dinero podría perder la empresa (en Dólares). Si el riesgo financiero es muy alto, ¡**cancela el despliegue** al instante!
+
+### 3. El Modo Arquitecto Cloud (Kubernetes)
+Si trabajas en una empresa gigante con cientos de APIs en la nube:
+```bash
+helm install bola-strike ./kubernetes/bola-strike-helm-chart -n secops
+```
+**¿Cómo funciona?** La herramienta lanzará cientos de "cápsulas" (pods) diminutas e invisibles en tu nube. Éstas atacarán masivamente toda tu red al mismo tiempo, reportarán los fallos y luego se auto-destruirán sin dejar rastro.
+
+---
+
+## 🧠 ¿Qué hace a BOLA Strike "Nivel Dios"? (Las 12 Fases explicadas fácil)
+
+Por detrás, la plataforma ejecuta 12 tecnologías súper avanzadas. Aquí te explicamos qué hacen de forma sencilla:
+
+1. **Descubrimiento de APIs:** Encuentra APIs ocultas escuchando el tráfico de tu red.
+2. **Fuzzing de Máquina de Estados:** No solo ataca una página. Aprende a "Crear usuario -> Iniciar sesión -> Agregar al carrito -> Intentar robar el carrito de otro".
+3. **Soporte GraphQL:** Puede hackear bases de datos modernas (GraphQL) con la misma facilidad que las APIs normales.
+4. **Cracking de JWT:** Intenta falsificar los tokens de inicio de sesión (cookies) para hacerle creer al sistema que es el Administrador.
+5. **Evasión de WAF:** Actúa como un ninja, esquivando las defensas de firewalls como Cloudflare.
+6. **Reportes Ejecutivos:** Crea archivos técnicos para programadores y reportes legibles para gerentes.
+7. **Integración Service Mesh:** Se conecta directo al enrutador central de tu nube.
+8. **Inteligencia Artificial (LLM):** Usa IA generativa para pensar y atacar como un humano.
+9. **Riesgo Financiero (FAIR):** No te dice "Riesgo Alto". Te dice "Este error nos podría costar $150,000 dólares en multas".
+10. **Auto-Remediación:** Escribe código automáticamente para bloquear el ataque en tu firewall mientras tus programadores arreglan el error.
+11. **Sanador del Kernel (eBPF):** Si detecta un ataque en vivo, corta la conexión del hacker instantáneamente desde la tarjeta de red de la computadora. Esto significa 0 latencia para tus usuarios reales.
+12. **Ledger Cuántico:** Guarda todos los registros de seguridad en una blockchain privada usando criptografía Post-Cuántica. Esto significa que ni siquiera una supercomputadora del año 2035 podría alterar tus logs.
+
+---
+**Desarrollado por Nicolas Ferrer** | *Arquitecto Principal de Ciberseguridad & Estratega DevSecOps*

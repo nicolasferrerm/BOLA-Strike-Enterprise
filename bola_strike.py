@@ -218,7 +218,7 @@ class EnterpriseFuzzer:
                 self.endpoints = parser.parse()
                 console.print(f"[bold green]Autodiscovered {len(self.endpoints)} endpoints![/]")
             except Exception as e:
-                console.print(f"[bold red]FATAL ERROR:[/] Failed to parse OpenAPI specification.")
+                console.print("[bold red]FATAL ERROR:[/] Failed to parse OpenAPI specification.")
                 console.print(f"[red]Reason: {e}[/]")
                 console.print("[yellow]Hint: Ensure the URL is reachable and the JSON/YAML is valid OpenAPI v3.[/]")
                 import sys
@@ -405,7 +405,7 @@ class EnterpriseFuzzer:
         table.add_column("Severity", style="bold white")
         table.add_column("Diagnosis", style="bold")
 
-        with Live(table, refresh_per_second=4) as live:
+        with Live(table, refresh_per_second=4):
             async with aiohttp.ClientSession(connector=connector) as session:
                 tasks = [self.check_endpoint(session, ep, sem) for ep in self.endpoints]
                 

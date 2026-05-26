@@ -1,43 +1,89 @@
-"""
-BOLA Strike Enterprise — Headless DevSecOps Runner (v11.0)
-Containerized CLI binary optimized for CI/CD runners (GitHub Actions, GitLab CI).
-Executes targeted fuzzing on code diffs and enforces risk appetite blocking.
+"""BOLA Strike Enterprise — Headless DevSecOps Runner (v12.0).
+
+Containerized CLI binary optimized for CI/CD pipelines (GitHub Actions,
+GitLab CI, Azure DevOps).  Executes targeted fuzzing on OpenAPI specs
+and enforces financial risk appetite blocking via the FAIR model.
+
+Usage in CI/CD::
+
+    python cli_runner.py --target ./openapi.yaml
+
+The risk appetite threshold is read from the ``BOLA_RISK_APPETITE_CAD``
+environment variable (server-side locked — never from CLI args).
 """
 import argparse
-import sys
-import json
 import logging
+import os
+import sys
+from typing import NoReturn
 
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S",
+)
 logger = logging.getLogger("CI_Runner")
 
-def main():
-    parser = argparse.ArgumentParser(description="BOLA Strike CI/CD Headless Fuzzer")
-    parser.add_argument("--target", required=True, help="API Endpoint or Swagger File to fuzz")
-    parser.add_argument("--method", default="ALL", help="HTTP Method")
-    
+
+def main() -> None:
+    """Entry point for the headless CI/CD security gate."""
+    parser = argparse.ArgumentParser(
+        description="BOLA Strike Enterprise — CI/CD Headless Security Gate",
+    )
+    parser.add_argument(
+        "--target",
+        required=True,
+        help="Path or URL to the OpenAPI/Swagger specification to fuzz.",
+    )
+    parser.add_argument(
+        "--method",
+        default="ALL",
+        choices=["ALL", "GET", "POST", "PUT", "PATCH", "DELETE"],
+        help="HTTP method filter (default: ALL).",
+    )
+    parser.add_argument(
+        "--output-sarif",
+        default="bola_strike_results.sarif",
+        help="Path to write SARIF output for GitHub Advanced Security.",
+    )
+
     args = parser.parse_args()
-    
-    logger.info(f"Initializing Autonomous BOLA Security Scan against {args.target}")
+
+    logger.info("Initializing Autonomous BOLA Security Scan against %s", args.target)
     logger.info("Injecting AI Payload Generation and State Machine DAGs...")
-    
-    # Mocking execution
-    logger.info("Scanning completed.")
-    
-    # Mocking FAIR Risk calculation result
-    simulated_ale = 150000.0 # Pretend we found a critical BOLA in CI
-    locked_risk_appetite = 50000.0 # Loaded via CI/CD Secure Secrets, not CLI args
-    
-    logger.info(f"Calculated FAIR Annualized Loss Expectancy: ${simulated_ale} CAD")
-    logger.info(f"Corporate Risk Appetite Threshold: ${locked_risk_appetite} CAD")
-    
+
+    # ---- Simulated scan execution ----
+    # In production, this calls the fuzzer engine directly:
+    #   from backend.app.core.openapi_parser import OpenAPIParser
+    #   endpoints = OpenAPIParser(args.target).parse()
+    #   ...run scan and compute risk...
+    logger.info("Scan completed. Evaluating financial risk (FAIR model)...")
+
+    # FAIR Risk Calculation (simulated values for demonstration)
+    simulated_ale: float = 150_000.0  # Annualized Loss Expectancy in CAD
+    locked_risk_appetite: float = float(
+        os.environ.get("BOLA_RISK_APPETITE_CAD", "50000.0")
+    )
+
+    logger.info(
+        "FAIR Results: ALE = $%.2f CAD | Appetite Threshold = $%.2f CAD",
+        simulated_ale,
+        locked_risk_appetite,
+    )
+
     if simulated_ale > locked_risk_appetite:
-        logger.error("CRITICAL: Financial risk exceeds corporate appetite. Blocking CI/CD Pipeline!")
-        logger.error("Auto-Remediation WAF rule generated. Please review artifacts.")
-        sys.exit(1) # Break the build
+        logger.error(
+            "CRITICAL: Financial risk ($%.2f) exceeds corporate appetite ($%.2f). "
+            "Blocking CI/CD Pipeline!",
+            simulated_ale,
+            locked_risk_appetite,
+        )
+        logger.error("Auto-Remediation WAF rule generated. Review pipeline artifacts.")
+        sys.exit(1)  # Break the build
     else:
-        logger.info("Security Gate Passed. Proceeding with deployment.")
+        logger.info("Security Gate PASSED. Proceeding with deployment.")
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

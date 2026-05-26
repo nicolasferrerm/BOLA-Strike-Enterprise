@@ -1,0 +1,67 @@
+# =============================================================================
+# BOLA Strike Enterprise — Root .dockerignore
+# Excludes non-essential files from Docker build context to reduce image size,
+# speed up builds, and prevent accidental inclusion of secrets.
+# =============================================================================
+
+# --- Version Control ---
+.git
+.gitignore
+.gitattributes
+
+# --- Python Artifacts ---
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+dist/
+build/
+*.whl
+
+# --- Node.js ---
+node_modules
+
+# --- Environment & Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Output & Evidence (runtime-generated) ---
+evidence/
+reports/
+iac_patches/
+linkedin_evidence/
+
+# --- CI/CD & GitHub ---
+.github/
+
+# --- Documentation (not needed in container) ---
+docs/
+*.md
+!README.md
+!README_es.md
+
+# --- IDE & Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Testing ---
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- Misc ---
+*.log
+*.bak
+*.tmp
+docker-compose*.yml
+prometheus/

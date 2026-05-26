@@ -61,3 +61,10 @@ evidence_locker/
 htmlcov/
 .coverage
 coverage.xml
+
+# --- Generated Outputs ---
+evidence/
+iac_patches/
+*.pdf
+report.html
+executive_report.html
