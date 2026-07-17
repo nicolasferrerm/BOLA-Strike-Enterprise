@@ -5,6 +5,7 @@ Addresses: Audit v2.0 Task 2.2
 Supports N configurable roles (not just attacker/victim) for NxN access matrix testing.
 Automatically renews OAuth2/OIDC tokens with anti-stampede distributed locking.
 """
+
 import time
 import os
 import requests
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 class AuthManager:
     """
     Enterprise Identity Manager supporting arbitrary roles for cross-role BOLA matrix testing.
-    
+
     Example config:
         users:
           admin: {auth_url: "...", client_id: "admin_app", client_secret_env: "ADMIN_SECRET"}
@@ -33,19 +34,19 @@ class AuthManager:
 
         for role, config in users_config.items():
             # Read client_secret from env var if specified (Vault-compatible)
-            client_secret = config.get('client_secret')
-            secret_env = config.get('client_secret_env')
+            client_secret = config.get("client_secret")
+            secret_env = config.get("client_secret_env")
             if secret_env:
-                client_secret = os.environ.get(secret_env, client_secret or '')
+                client_secret = os.environ.get(secret_env, client_secret or "")
 
             self.roles[role] = {
-                'name': config.get('name', role),
-                'auth_url': config.get('auth_url', ''),
-                'client_id': config.get('client_id', f'bola_{role}'),
-                'client_secret': client_secret or '',
-                'token': config.get('token', None),
-                'static_headers': config.get('headers', {}),
-                'expires_at': time.time() + 300 if config.get('token') else 0
+                "name": config.get("name", role),
+                "auth_url": config.get("auth_url", ""),
+                "client_id": config.get("client_id", f"bola_{role}"),
+                "client_secret": client_secret or "",
+                "token": config.get("token", None),
+                "static_headers": config.get("headers", {}),
+                "expires_at": time.time() + 300 if config.get("token") else 0,
             }
             self.local_locks[role] = threading.Lock()
 
@@ -53,6 +54,7 @@ class AuthManager:
         self.redis = None
         try:
             import redis as redis_lib
+
             redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
             self.redis = redis_lib.from_url(redis_url, socket_timeout=1)
             self.redis.ping()
@@ -76,7 +78,9 @@ class AuthManager:
                     pairs.append((requester, owner))
         return pairs
 
-    def get_headers(self, role: str, base_headers: Dict[str, str] = None) -> Dict[str, str]:
+    def get_headers(
+        self, role: str, base_headers: Dict[str, str] = None
+    ) -> Dict[str, str]:
         """Get authenticated headers for a given role, refreshing token if needed."""
         headers = dict(base_headers or {})
         role_data = self.roles.get(role)
@@ -84,40 +88,47 @@ class AuthManager:
             return headers
 
         # Apply static headers first
-        headers.update(role_data.get('static_headers', {}))
+        headers.update(role_data.get("static_headers", {}))
 
         # Dynamic token refresh if auth_url is configured
-        if role_data['auth_url']:
-            if time.time() >= role_data['expires_at'] or not role_data['token']:
+        if role_data["auth_url"]:
+            if time.time() >= role_data["expires_at"] or not role_data["token"]:
                 if self._acquire_lock(role):
                     try:
-                        if time.time() >= role_data['expires_at'] or not role_data['token']:
+                        if (
+                            time.time() >= role_data["expires_at"]
+                            or not role_data["token"]
+                        ):
                             self._refresh_token(role)
                     finally:
                         self._release_lock(role)
                 else:
                     # Wait for another thread to finish refreshing
                     waited = 0.0
-                    while waited < 5.0 and (time.time() >= role_data['expires_at'] or not role_data['token']):
+                    while waited < 5.0 and (
+                        time.time() >= role_data["expires_at"] or not role_data["token"]
+                    ):
                         time.sleep(0.1)
                         waited += 0.1
 
-        if role_data['token']:
-            token = role_data['token']
+        if role_data["token"]:
+            token = role_data["token"]
             if not token.startswith("Bearer "):
                 token = f"Bearer {token}"
-            headers['Authorization'] = token
+            headers["Authorization"] = token
 
         return headers
 
     def _acquire_lock(self, role: str) -> bool:
         if self.redis:
-            return bool(self.redis.set(f'auth_refresh_lock_{role}', 'locked', nx=True, ex=10))
+            return bool(
+                self.redis.set(f"auth_refresh_lock_{role}", "locked", nx=True, ex=10)
+            )
         return self.local_locks[role].acquire(blocking=False)
 
     def _release_lock(self, role: str):
         if self.redis:
-            self.redis.delete(f'auth_refresh_lock_{role}')
+            self.redis.delete(f"auth_refresh_lock_{role}")
         else:
             try:
                 self.local_locks[role].release()
@@ -128,16 +139,21 @@ class AuthManager:
         role_data = self.roles[role]
         try:
             res = requests.post(
-                role_data['auth_url'],
-                json={"client_id": role_data['client_id'], "client_secret": role_data['client_secret']},
-                timeout=5
+                role_data["auth_url"],
+                json={
+                    "client_id": role_data["client_id"],
+                    "client_secret": role_data["client_secret"],
+                },
+                timeout=5,
             )
             if res.status_code == 200:
                 data = res.json()
-                role_data['token'] = data.get('access_token')
-                role_data['expires_at'] = time.time() + data.get('expires_in', 3600)
+                role_data["token"] = data.get("access_token")
+                role_data["expires_at"] = time.time() + data.get("expires_in", 3600)
                 logger.info(f"[AuthManager] Token refreshed for role: {role}")
             else:
-                logger.warning(f"[AuthManager] Token renewal failed for {role}: HTTP {res.status_code}")
+                logger.warning(
+                    f"[AuthManager] Token renewal failed for {role}: HTTP {res.status_code}"
+                )
         except Exception as e:
             logger.error(f"[AuthManager] Critical auth failure for {role}: {e}")

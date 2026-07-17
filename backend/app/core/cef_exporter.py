@@ -8,19 +8,35 @@ Exports findings in ArcSight Common Event Format (CEF) for native ingestion into
 - Microsoft Sentinel
 - ArcSight
 """
+
 import datetime
 from typing import List, Dict, Any
 from app.version import __version__
 
 SEVERITY_MAP = {"CRITICAL": 10, "HIGH": 8, "MEDIUM": 5, "LOW": 3, "INFO": 1}
 
+
 def _escape_cef_header(value: Any) -> str:
     """Escape special CEF characters for headers: backslash, pipe, newlines."""
-    return str(value or "").replace("\\", "\\\\").replace("|", "\\|").replace("\n", "\\n").replace("\r", "\\r")
+    return (
+        str(value or "")
+        .replace("\\", "\\\\")
+        .replace("|", "\\|")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
+
 
 def _escape_cef_extension(value: Any) -> str:
     """Escape special CEF characters for extensions: backslash, equals, newlines."""
-    return str(value or "").replace("\\", "\\\\").replace("=", "\\=").replace("\n", "\\n").replace("\r", "\\r")
+    return (
+        str(value or "")
+        .replace("\\", "\\\\")
+        .replace("=", "\\=")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
+
 
 def finding_to_cef(result: Dict[str, Any], scan_id: str = "N/A") -> str:
     """Convert a single finding to a CEF log line."""
@@ -53,10 +69,13 @@ def finding_to_cef(result: Dict[str, Any], scan_id: str = "N/A") -> str:
         f"msg={remediation}"
     )
 
-def export_cef(results: List[Dict[str, Any]], output_path: str, scan_id: str = "N/A") -> str:
+
+def export_cef(
+    results: List[Dict[str, Any]], output_path: str, scan_id: str = "N/A"
+) -> str:
     """Export all vulnerable findings to a CEF log file."""
     lines = [finding_to_cef(r, scan_id) for r in results]
-    lines = [l for l in lines if l]
-    with open(output_path, 'w', encoding='utf-8') as f:
+    lines = [line for line in lines if line]
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     return output_path

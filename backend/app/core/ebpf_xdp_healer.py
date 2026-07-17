@@ -9,6 +9,7 @@ NOTE: This module *simulates* eBPF/XDP operations.  A production
       The simulation allows the full attack pipeline to be tested without
       requiring actual kernel privileges.
 """
+
 import logging
 import uuid
 from typing import Dict, Optional
@@ -26,7 +27,9 @@ class EBPFXDPHealer:
     def __init__(self, default_interface: str = "eth0") -> None:
         self.default_interface = default_interface
         self.active_xdp_filters: Dict[str, str] = {}
-        logger.info("[eBPF Kernel] XDP healer initialized (interface: %s)", default_interface)
+        logger.info(
+            "[eBPF Kernel] XDP healer initialized (interface: %s)", default_interface
+        )
 
     def compile_ebpf_bytecode(self, malicious_signature: str) -> str:
         """Simulate dynamic compilation of eBPF C bytecode.

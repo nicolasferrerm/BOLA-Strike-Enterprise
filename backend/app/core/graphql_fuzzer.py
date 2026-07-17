@@ -8,6 +8,7 @@ Discovers and fuzzes GraphQL APIs for authorization vulnerabilities:
 - Mutation authorization bypass (BOLA on GraphQL mutations)
 - Field-level authorization testing
 """
+
 import requests
 import logging
 from typing import Dict, Any, List, Optional
@@ -60,13 +61,19 @@ class GraphQLFuzzer:
                 if "data" in data and "__schema" in data["data"]:
                     self.schema = data["data"]["__schema"]
                     self._extract_operations()
-                    logger.info(f"[GraphQL] Introspection succeeded: {len(self.queries)} queries, {len(self.mutations)} mutations")
+                    logger.info(
+                        f"[GraphQL] Introspection succeeded: {len(self.queries)} queries, {len(self.mutations)} mutations"
+                    )
                     return True
                 elif "errors" in data:
-                    logger.warning(f"[GraphQL] Introspection disabled or restricted: {data['errors'][0].get('message', '')}")
+                    logger.warning(
+                        f"[GraphQL] Introspection disabled or restricted: {data['errors'][0].get('message', '')}"
+                    )
                     return False
             else:
-                logger.warning(f"[GraphQL] Introspection returned HTTP {resp.status_code}")
+                logger.warning(
+                    f"[GraphQL] Introspection returned HTTP {resp.status_code}"
+                )
                 return False
         except Exception as e:
             logger.error(f"[GraphQL] Introspection failed: {e}")
@@ -77,9 +84,13 @@ class GraphQLFuzzer:
         if not self.schema:
             return
 
-        type_map = {t["name"]: t for t in self.schema.get("types", []) if t.get("fields")}
+        type_map = {
+            t["name"]: t for t in self.schema.get("types", []) if t.get("fields")
+        }
         query_type_name = (self.schema.get("queryType") or {}).get("name", "Query")
-        mutation_type_name = (self.schema.get("mutationType") or {}).get("name", "Mutation")
+        mutation_type_name = (self.schema.get("mutationType") or {}).get(
+            "name", "Mutation"
+        )
 
         if query_type_name in type_map:
             for field in type_map[query_type_name].get("fields", []):
@@ -107,15 +118,15 @@ class GraphQLFuzzer:
                 elif type_name in ("String", "string"):
                     arg_parts.append(f'{a["name"]}: "test"')
                 elif type_name in ("Int", "Float", "int", "float"):
-                    arg_parts.append(f'{a["name"]}: 1')
+                    arg_parts.append(f"{a['name']}: 1")
                 elif type_name in ("Boolean", "boolean"):
-                    arg_parts.append(f'{a["name"]}: true')
+                    arg_parts.append(f"{a['name']}: true")
                 else:
                     arg_parts.append(f'{a["name"]}: "test"')
             arg_str = f"({', '.join(arg_parts)})"
 
         return_type = self._resolve_type_name(field.get("type", {}))
-        template = f'{op_type} {{ {field["name"]}{arg_str} {{ id __typename }} }}'
+        template = f"{op_type} {{ {field['name']}{arg_str} {{ id __typename }} }}"
 
         return {
             "name": field["name"],
@@ -142,23 +153,29 @@ class GraphQLFuzzer:
                 targets.append(op)
         return targets
 
-    def generate_endpoints_for_fuzzer(self, target_id: str = "TARGET_ID") -> List[Dict[str, Any]]:
+    def generate_endpoints_for_fuzzer(
+        self, target_id: str = "TARGET_ID"
+    ) -> List[Dict[str, Any]]:
         """Convert discovered operations into the standard endpoint format for the main fuzzer."""
         endpoints = []
         for op in self.get_bola_targets():
             query = op["template"].replace("TARGET_ID", str(target_id))
-            endpoints.append({
-                "path": self.endpoint,
-                "method": "POST",
-                "body": {"query": query},
-                "is_admin": False,
-                "tags": [f"graphql-{op['type']}", op["name"]],
-                "graphql_operation": op["name"],
-            })
+            endpoints.append(
+                {
+                    "path": self.endpoint,
+                    "method": "POST",
+                    "body": {"query": query},
+                    "is_admin": False,
+                    "tags": [f"graphql-{op['type']}", op["name"]],
+                    "graphql_operation": op["name"],
+                }
+            )
         return endpoints
 
 
-def discover_graphql(endpoint: str, headers: Dict[str, str] = None) -> Optional[GraphQLFuzzer]:
+def discover_graphql(
+    endpoint: str, headers: Dict[str, str] = None
+) -> Optional[GraphQLFuzzer]:
     """Factory: Attempt GraphQL introspection and return a fuzzer if successful."""
     fuzzer = GraphQLFuzzer(endpoint, headers)
     if fuzzer.introspect():

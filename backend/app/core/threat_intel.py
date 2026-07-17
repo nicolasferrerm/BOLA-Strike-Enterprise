@@ -8,6 +8,7 @@ Consumes threat intelligence feeds and cross-references with scan findings:
 - MISP event correlation (via REST API)
 - Auto-escalation: if a finding matches an active TTP, severity is elevated.
 """
+
 import requests
 import logging
 import os
@@ -37,11 +38,16 @@ class ThreatIntelEngine:
     def load_cisa_kev(self) -> int:
         """Load CISA Known Exploited Vulnerabilities catalog (with local caching)."""
         cache_file = os.path.join(self.cache_dir, "cisa_kev.json")
-        if os.path.exists(cache_file) and time.time() - os.path.getmtime(cache_file) < 86400:
+        if (
+            os.path.exists(cache_file)
+            and time.time() - os.path.getmtime(cache_file) < 86400
+        ):
             try:
-                with open(cache_file, 'r', encoding='utf-8') as f:
+                with open(cache_file, "r", encoding="utf-8") as f:
                     self.kev_catalog = json.load(f).get("vulnerabilities", [])
-                    logger.info(f"[ThreatIntel] Loaded {len(self.kev_catalog)} CISA KEV entries from cache")
+                    logger.info(
+                        f"[ThreatIntel] Loaded {len(self.kev_catalog)} CISA KEV entries from cache"
+                    )
                     return len(self.kev_catalog)
             except Exception:
                 pass
@@ -51,8 +57,10 @@ class ThreatIntelEngine:
             if resp.status_code == 200:
                 data = resp.json()
                 self.kev_catalog = data.get("vulnerabilities", [])
-                logger.info(f"[ThreatIntel] Loaded {len(self.kev_catalog)} CISA KEV entries from API")
-                with open(cache_file, 'w', encoding='utf-8') as f:
+                logger.info(
+                    f"[ThreatIntel] Loaded {len(self.kev_catalog)} CISA KEV entries from API"
+                )
+                with open(cache_file, "w", encoding="utf-8") as f:
                     json.dump(data, f)
                 return len(self.kev_catalog)
         except Exception as e:
@@ -66,10 +74,14 @@ class ThreatIntelEngine:
             return 0
         try:
             headers = {"X-OTX-API-KEY": key}
-            iso_date = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=pulse_days)).isoformat()
+            iso_date = (
+                datetime.datetime.now(datetime.timezone.utc)
+                - datetime.timedelta(days=pulse_days)
+            ).isoformat()
             resp = requests.get(
                 f"https://otx.alienvault.com/api/v1/pulses/subscribed?modified_since={iso_date}",
-                headers=headers, timeout=15
+                headers=headers,
+                timeout=15,
             )
             if resp.status_code == 200:
                 data = resp.json()
@@ -98,7 +110,7 @@ class ThreatIntelEngine:
             # Also check the notes field for CWE mentions using word boundaries
             notes = kev.get("notes", "")
             cwe_num = cwe_id.replace("CWE-", "")
-            if re.search(rf'\bCWE-{cwe_num}\b', str(notes), re.IGNORECASE):
+            if re.search(rf"\bCWE-{cwe_num}\b", str(notes), re.IGNORECASE):
                 return {"kev_id": kev.get("cveID"), "vendor": kev.get("vendorProject")}
         return None
 
@@ -109,7 +121,11 @@ class ThreatIntelEngine:
             result["threat_intel"] = None
             return result
 
-        ti_data = {"cisa_kev_match": None, "actively_exploited": False, "escalated": False}
+        ti_data = {
+            "cisa_kev_match": None,
+            "actively_exploited": False,
+            "escalated": False,
+        }
 
         # Check CISA KEV
         cwe = result.get("cwe", "N/A")
@@ -122,8 +138,12 @@ class ThreatIntelEngine:
             if result.get("severity") in ("MEDIUM", "LOW"):
                 result["original_severity"] = result["severity"]
                 result["severity"] = "HIGH"
-                ti_data["escalation_reason"] = f"CWE matches CISA KEV entry {kev_match.get('kev_id', 'unknown')}"
-                logger.warning(f"[ThreatIntel] ESCALATED: {result.get('path')} — matches active exploitation (KEV)")
+                ti_data["escalation_reason"] = (
+                    f"CWE matches CISA KEV entry {kev_match.get('kev_id', 'unknown')}"
+                )
+                logger.warning(
+                    f"[ThreatIntel] ESCALATED: {result.get('path')} — matches active exploitation (KEV)"
+                )
 
         result["threat_intel"] = ti_data
         return result
@@ -132,7 +152,9 @@ class ThreatIntelEngine:
         return [self.enrich_finding(r) for r in results]
 
 
-def load_and_enrich(results: List[Dict[str, Any]], config: dict = None) -> List[Dict[str, Any]]:
+def load_and_enrich(
+    results: List[Dict[str, Any]], config: dict = None
+) -> List[Dict[str, Any]]:
     """Convenience: Load all feeds and enrich findings."""
     ti_cfg = (config or {}).get("integrations", {}).get("threat_intel", {})
     engine = ThreatIntelEngine(ti_cfg)

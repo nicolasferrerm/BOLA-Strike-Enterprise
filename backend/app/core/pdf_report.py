@@ -12,14 +12,18 @@ Generates Board-Ready PDF reports with:
 Uses only stdlib + minimal dependencies (no wkhtmltopdf/weasyprint needed).
 Outputs a richly-formatted HTML file designed for browser Print-to-PDF.
 """
+
 import datetime
 import html
 from typing import List, Dict, Any
 from app.version import __version__
 
 
-def generate_pdf_report(results: List[Dict[str, Any]], target_url: str = "",
-                         output_path: str = "executive_report.html") -> str:
+def generate_pdf_report(
+    results: List[Dict[str, Any]],
+    target_url: str = "",
+    output_path: str = "executive_report.html",
+) -> str:
     """
     Generate a board-ready executive report as a print-optimized HTML file.
     Users can open in a browser and Print → Save as PDF for a professional artifact.
@@ -46,22 +50,30 @@ def generate_pdf_report(results: List[Dict[str, Any]], target_url: str = "",
         mitre = r.get("mitre_attack", {}) or {}
         compliance = r.get("compliance", {}) or {}
         ti = r.get("threat_intel", {}) or {}
-        
+
         cwe_safe = html.escape(str(r.get("cwe", "N/A")))
         rem_safe = html.escape(str(r.get("remediation", "N/A")))
         method_safe = html.escape(str(r.get("method", "?")))
         path_safe = html.escape(str(r.get("path", "?")))
-        owasp_id = html.escape(str(owasp.get('id', 'N/A')))
-        owasp_name = html.escape(str(owasp.get('name', '')))
-        mitre_tac = html.escape(str(mitre.get('tactic', 'N/A')))
-        mitre_tech = html.escape(str(mitre.get('technique', '')))
-        mitre_name = html.escape(str(mitre.get('technique_name', '')))
-        cvss_vector = html.escape(str(cvss.get('vector', 'N/A')))
-        cvss_score = float(cvss.get('score', 0))
-        diff_ratio = float(r.get('diff_ratio', 0)) * 100
+        owasp_id = html.escape(str(owasp.get("id", "N/A")))
+        owasp_name = html.escape(str(owasp.get("name", "")))
+        mitre_tac = html.escape(str(mitre.get("tactic", "N/A")))
+        mitre_tech = html.escape(str(mitre.get("technique", "")))
+        mitre_name = html.escape(str(mitre.get("technique_name", "")))
+        cvss_vector = html.escape(str(cvss.get("vector", "N/A")))
+        cvss_score = float(cvss.get("score", 0))
+        diff_ratio = float(r.get("diff_ratio", 0)) * 100
 
         sev = str(r.get("severity", "INFO"))
-        sev_color = "#ef4444" if sev == "CRITICAL" else "#f97316" if sev == "HIGH" else "#eab308" if sev == "MEDIUM" else "#22c55e"
+        sev_color = (
+            "#ef4444"
+            if sev == "CRITICAL"
+            else "#f97316"
+            if sev == "HIGH"
+            else "#eab308"
+            if sev == "MEDIUM"
+            else "#22c55e"
+        )
 
         findings_rows += f"""
         <div class="finding" style="page-break-inside: avoid;">
@@ -78,15 +90,15 @@ def generate_pdf_report(results: List[Dict[str, Any]], target_url: str = "",
                 <tr><td class="label">CVSS Vector</td><td><code>{cvss_vector}</code></td></tr>
                 <tr><td class="label">Diff Ratio</td><td>{diff_ratio:.0f}%</td></tr>
                 <tr><td class="label">Remediation</td><td>{rem_safe}</td></tr>
-                {"<tr><td class='label'>Threat Intel</td><td style='color:#ef4444;font-weight:bold'>⚠ CISA KEV Match: Actively Exploited</td></tr>" if ti.get('actively_exploited') else ""}
+                {"<tr><td class='label'>Threat Intel</td><td style='color:#ef4444;font-weight:bold'>⚠ CISA KEV Match: Actively Exploited</td></tr>" if ti.get("actively_exploited") else ""}
             </table>
             <div class="compliance-row">
-                {"".join(f"<span class='compliance-tag'>{html.escape(str(k))}: {html.escape(str(v)[:60])}</span>" for k,v in compliance.items()) if compliance else "<span class='compliance-tag'>No compliance mapping</span>"}
+                {"".join(f"<span class='compliance-tag'>{html.escape(str(k))}: {html.escape(str(v)[:60])}</span>" for k, v in compliance.items()) if compliance else "<span class='compliance-tag'>No compliance mapping</span>"}
             </div>
         </div>
         """
 
-    f"""<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -125,7 +137,7 @@ def generate_pdf_report(results: List[Dict[str, Any]], target_url: str = "",
         <h1>🛡️ BOLA Strike Enterprise</h1>
         <div class="subtitle">Executive Security Audit Report</div>
         <div class="meta">
-            <p><strong>Target:</strong> {html.escape(str(target_url)) if target_url else 'N/A'}</p>
+            <p><strong>Target:</strong> {html.escape(str(target_url)) if target_url else "N/A"}</p>
             <p><strong>Date:</strong> {now}</p>
             <p><strong>Engine:</strong> BOLA Strike v{__version__}</p>
             <p><strong>Classification:</strong> CONFIDENTIAL</p>
@@ -154,6 +166,6 @@ def generate_pdf_report(results: List[Dict[str, Any]], target_url: str = "",
 </body>
 </html>"""
 
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
     return output_path

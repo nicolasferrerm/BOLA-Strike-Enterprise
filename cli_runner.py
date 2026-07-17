@@ -11,11 +11,11 @@ Usage in CI/CD::
 The risk appetite threshold is read from the ``BOLA_RISK_APPETITE_CAD``
 environment variable (server-side locked — never from CLI args).
 """
+
 import argparse
 import logging
 import os
 import sys
-from typing import NoReturn
 
 logging.basicConfig(
     level=logging.INFO,

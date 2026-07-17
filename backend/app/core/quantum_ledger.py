@@ -9,6 +9,7 @@ NOTE: The PQC signatures in this module are *simulations* using SHA-256
       PQC library (e.g., ``oqs-python`` from Open Quantum Safe) or a
       hardware security module (HSM) with NIST PQC support.
 """
+
 import hashlib
 import json
 import logging
@@ -62,9 +63,7 @@ class QuantumLedger:
     def anchor_audit_record(self, record_type: str, data: Dict[str, Any]) -> str:
         """Anchor a security event to the blockchain and return its hash."""
         previous_block = self.blockchain[-1]
-        payload_str = json.dumps(
-            {"type": record_type, "content": data}, sort_keys=True
-        )
+        payload_str = json.dumps({"type": record_type, "content": data}, sort_keys=True)
 
         new_block: Dict[str, Any] = {
             "index": len(self.blockchain),
@@ -99,5 +98,8 @@ class QuantumLedger:
                     "[DLT Integrity] Hash mismatch at block #%d!", current["index"]
                 )
                 return False
-        logger.info("[DLT Integrity] Chain verified. All %d blocks intact.", len(self.blockchain))
+        logger.info(
+            "[DLT Integrity] Chain verified. All %d blocks intact.",
+            len(self.blockchain),
+        )
         return True
