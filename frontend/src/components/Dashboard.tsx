@@ -14,6 +14,30 @@ interface MITREData { tactic: string; technique: string; technique_name: string;
 interface ThreatIntel { actively_exploited: boolean; escalated: boolean; }
 interface ComplianceData { [key: string]: string; }
 
+interface ScanConfig {
+  apiKey: string;
+  targetUrl: string;
+  targetId: string;
+  swaggerUrl: string;
+  attackerToken: string;
+  victimToken: string;
+}
+
+interface ScanTaskResult {
+  current?: number;
+  total?: number;
+  total_scanned?: number;
+  results?: ScanResult[];
+}
+
+interface ScanStatusResponse {
+  state: 'PENDING' | 'PROGRESS' | 'SUCCESS' | 'FAILURE';
+  result?: ScanTaskResult;
+  status?: string;
+}
+
+interface ScanStartResponse { task_id: string; }
+
 interface ScanResult {
   path: string; method: string; base_status: number; attack_status: number;
   diff_ratio: number; diagnosis: string; severity: string; cwe: string;
@@ -30,7 +54,7 @@ const Dashboard = () => {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const pollingRef = useRef<number | null>(null);
 
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<ScanConfig>({
     apiKey: 'dev-only-change-me-in-production',
     targetUrl: 'http://127.0.0.1:5000',
     targetId: '5050',
@@ -46,14 +70,18 @@ const Dashboard = () => {
       try {
         const res = await fetch(`${API_BASE}/scan/status/${taskId}`, { headers: { 'X-API-Key': config.apiKey } });
         if (!res.ok) throw new Error(`Status check failed: ${res.status}`);
-        const data = await res.json();
+        const data = await res.json() as ScanStatusResponse;
         if (data.state === 'PROGRESS' && data.result) setProgress({ current: data.result.current || 0, total: data.result.total || 0 });
         if (data.state === 'SUCCESS' && data.result) {
           stopPolling(); setScanStatus('COMPLETED');
           setResults(data.result.results || []);
           setProgress({ current: data.result.total_scanned || 0, total: data.result.total_scanned || 0 });
         } else if (data.state === 'FAILURE') { stopPolling(); setScanStatus('ERROR'); setErrorMsg(data.status || 'Scan task failed.'); }
-      } catch (e: any) { stopPolling(); setScanStatus('ERROR'); setErrorMsg(e.message); }
+      } catch (error: unknown) {
+        stopPolling();
+        setScanStatus('ERROR');
+        setErrorMsg(error instanceof Error ? error.message : 'Unexpected status error.');
+      }
     }, 2000);
   };
 
@@ -70,12 +98,14 @@ const Dashboard = () => {
     try {
       const res = await fetch(`${API_BASE}/scan/start`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': config.apiKey }, body: JSON.stringify(payload) });
       if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || `API returned ${res.status}`); }
-      const data = await res.json(); pollStatus(data.task_id);
-    } catch (e: any) { setScanStatus('ERROR'); setErrorMsg(e.message); }
+      const data = await res.json() as ScanStartResponse; pollStatus(data.task_id);
+    } catch (error: unknown) {
+      setScanStatus('ERROR');
+      setErrorMsg(error instanceof Error ? error.message : 'Unexpected scan error.');
+    }
   };
 
   const vulnCount = results.filter(r => r.diagnosis?.includes('VULNERABLE')).length;
-  const secureCount = results.filter(r => r.diagnosis?.includes('SECURE')).length;
   const warningCount = results.filter(r => r.diagnosis?.includes('WARNING')).length;
   const avgCvss = results.length > 0 ? (results.reduce((s, r) => s + (r.cvss?.score || 0), 0) / results.filter(r => r.cvss?.score).length || 0).toFixed(1) : '—';
   const postureScore = results.length > 0 ? Math.max(0, 100 - (vulnCount * 15 + warningCount * 5)) : 0;
@@ -122,18 +152,18 @@ const Dashboard = () => {
       <div className="glass-panel p-8 mb-10">
         <h2 className="text-2xl font-bold mb-6">Scan Configuration</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {[
+          {([
             { label: 'API Key (X-API-Key)', key: 'apiKey', type: 'password' },
             { label: 'Target API URL', key: 'targetUrl', type: 'text' },
             { label: 'Target ID (Victim Resource)', key: 'targetId', type: 'text' },
             { label: 'OpenAPI/Swagger URL', key: 'swaggerUrl', type: 'text' },
             { label: 'Attacker JWT Token', key: 'attackerToken', type: 'password' },
             { label: 'Victim JWT Token', key: 'victimToken', type: 'password' },
-          ].map(({ label, key, type }) => (
+          ] as Array<{ label: string; key: keyof ScanConfig; type: string }>).map(({ label, key, type }) => (
             <div key={key}>
               <label className="block text-slate-400 text-sm mb-1">{label}</label>
               <input type={type} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                value={(config as any)[key]} onChange={e => setConfig(c => ({ ...c, [key]: e.target.value }))}
+                value={config[key]} onChange={e => setConfig(c => ({ ...c, [key]: e.target.value }))}
               />
             </div>
           ))}
@@ -204,7 +234,7 @@ const Dashboard = () => {
                                 <div className="mt-3">
                                   <h4 className="text-emerald-400 font-bold text-sm uppercase mb-1">Compliance</h4>
                                   <div className="flex flex-wrap gap-1">
-                                    {Object.entries(res.compliance).map(([k, v]) => (
+                                    {Object.entries(res.compliance).map(([k]) => (
                                       <span key={k} className="text-xs bg-emerald-900/30 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800">{k}</span>
                                     ))}
                                   </div>
