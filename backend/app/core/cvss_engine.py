@@ -6,6 +6,7 @@ Computes approximate CVSS v4.0 Base scores for API business logic vulnerabilitie
 Factors: HTTP method (Attack Complexity), auth requirement (Privileges Required),
 data sensitivity (Confidentiality/Integrity Impact).
 """
+
 from typing import Dict, Any
 import re
 
@@ -21,11 +22,41 @@ METHOD_COMPLEXITY = {
 }
 
 DIAGNOSIS_SCORES = {
-    "BFLA": {"base": 9.8, "privileges_required": "Low", "ci": "High", "ii": "High", "ai": "None"},
-    "BOLA_STATE": {"base": 9.1, "privileges_required": "Low", "ci": "High", "ii": "High", "ai": "None"},
-    "BOLA": {"base": 8.6, "privileges_required": "Low", "ci": "High", "ii": "None", "ai": "None"},
-    "MA": {"base": 7.5, "privileges_required": "Low", "ci": "Low", "ii": "High", "ai": "None"},
-    "WARNING": {"base": 5.3, "privileges_required": "None", "ci": "Low", "ii": "None", "ai": "None"},
+    "BFLA": {
+        "base": 9.8,
+        "privileges_required": "Low",
+        "ci": "High",
+        "ii": "High",
+        "ai": "None",
+    },
+    "BOLA_STATE": {
+        "base": 9.1,
+        "privileges_required": "Low",
+        "ci": "High",
+        "ii": "High",
+        "ai": "None",
+    },
+    "BOLA": {
+        "base": 8.6,
+        "privileges_required": "Low",
+        "ci": "High",
+        "ii": "None",
+        "ai": "None",
+    },
+    "MA": {
+        "base": 7.5,
+        "privileges_required": "Low",
+        "ci": "Low",
+        "ii": "High",
+        "ai": "None",
+    },
+    "WARNING": {
+        "base": 5.3,
+        "privileges_required": "None",
+        "ci": "Low",
+        "ii": "None",
+        "ai": "None",
+    },
 }
 
 
@@ -35,7 +66,7 @@ def _classify(diagnosis: str) -> str:
         return "BFLA"
     if "STATE" in d and "BOLA" in d:
         return "BOLA_STATE"
-    if re.search(r'\b(MA|MASS)\b', d):
+    if re.search(r"\b(MA|MASS)\b", d):
         return "MA"
     if "WARNING" in d:
         return "WARNING"
@@ -96,7 +127,7 @@ def compute_cvss(result: Dict[str, Any]) -> Dict[str, Any]:
             "confidentiality_impact": metrics["ci"],
             "integrity_impact": metrics["ii"],
             "availability_impact": metrics["ai"],
-        }
+        },
     }
 
 

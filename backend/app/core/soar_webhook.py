@@ -8,6 +8,7 @@ Sends standardized webhook payloads to SOAR platforms for automated incident res
 - Microsoft Sentinel Playbooks
 - Generic webhook (Slack, Teams, PagerDuty)
 """
+
 import requests
 import logging
 import socket
@@ -26,16 +27,29 @@ class SOARWebhook:
     Supports filtering by severity threshold to prevent alert fatigue.
     """
 
-    def __init__(self, webhook_url: str, min_severity: str = "HIGH",
-                 headers: Dict[str, str] = None, platform: str = "generic"):
+    def __init__(
+        self,
+        webhook_url: str,
+        min_severity: str = "HIGH",
+        headers: Dict[str, str] = None,
+        platform: str = "generic",
+    ):
         self.webhook_url = webhook_url
         self.min_severity = min_severity
         self.custom_headers = headers or {}
         self.platform = platform
-        self._severity_order = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1, "INFO": 0}
+        self._severity_order = {
+            "CRITICAL": 4,
+            "HIGH": 3,
+            "MEDIUM": 2,
+            "LOW": 1,
+            "INFO": 0,
+        }
 
     def _should_alert(self, severity: str) -> bool:
-        return self._severity_order.get(severity, 0) >= self._severity_order.get(self.min_severity, 3)
+        return self._severity_order.get(severity, 0) >= self._severity_order.get(
+            self.min_severity, 3
+        )
 
     def _build_payload(self, result: Dict[str, Any], scan_id: str) -> Dict[str, Any]:
         """Build a standardized SOAR-compatible payload."""
@@ -91,31 +105,52 @@ class SOARWebhook:
         return {
             "text": f"{emoji} *BOLA Strike Alert — {sev}*",
             "blocks": [
-                {"type": "section", "text": {"type": "mrkdwn", "text": f"{emoji} *{f['diagnosis']}*\n`{f['endpoint']}`"}},
-                {"type": "section", "fields": [
-                    {"type": "mrkdwn", "text": f"*CWE:* {f['cwe']}"},
-                    {"type": "mrkdwn", "text": f"*OWASP:* {payload['context']['owasp_api']}"},
-                    {"type": "mrkdwn", "text": f"*MITRE:* {payload['context']['mitre_technique']}"},
-                    {"type": "mrkdwn", "text": f"*Action:* {payload['recommended_action']}"},
-                ]},
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"{emoji} *{f['diagnosis']}*\n`{f['endpoint']}`",
+                    },
+                },
+                {
+                    "type": "section",
+                    "fields": [
+                        {"type": "mrkdwn", "text": f"*CWE:* {f['cwe']}"},
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*OWASP:* {payload['context']['owasp_api']}",
+                        },
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*MITRE:* {payload['context']['mitre_technique']}",
+                        },
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Action:* {payload['recommended_action']}",
+                        },
+                    ],
+                },
             ],
         }
 
     def _format_teams(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         f = payload["finding"]
         return {
-            "@type": "MessageCard", "@context": "http://schema.org/extensions",
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
             "themeColor": "FF0000" if f["severity"] == "CRITICAL" else "FFA500",
             "summary": f"BOLA Strike: {f['diagnosis']}",
-            "sections": [{
-                "activityTitle": f"🛡️ BOLA Strike — {f['severity']}",
-                "facts": [
-                    {"name": "Endpoint", "value": f["endpoint"]},
-                    {"name": "Diagnosis", "value": f["diagnosis"]},
-                    {"name": "CWE", "value": f["cwe"]},
-                    {"name": "Action", "value": payload["recommended_action"]},
-                ],
-            }],
+            "sections": [
+                {
+                    "activityTitle": f"🛡️ BOLA Strike — {f['severity']}",
+                    "facts": [
+                        {"name": "Endpoint", "value": f["endpoint"]},
+                        {"name": "Diagnosis", "value": f["diagnosis"]},
+                        {"name": "CWE", "value": f["cwe"]},
+                        {"name": "Action", "value": payload["recommended_action"]},
+                    ],
+                }
+            ],
         }
 
     def dispatch(self, results: List[Dict[str, Any]], scan_id: str = "N/A") -> int:
@@ -128,24 +163,37 @@ class SOARWebhook:
             try:
                 parsed = urlparse(self.webhook_url)
                 if parsed.scheme not in ("http", "https"):
-                    logger.error(f"[SOAR] Invalid webhook URL scheme (must be http/https): {self.webhook_url}")
+                    logger.error(
+                        f"[SOAR] Invalid webhook URL scheme (must be http/https): {self.webhook_url}"
+                    )
                     continue
                 try:
                     ip = socket.gethostbyname(parsed.hostname)
-                    if ipaddress.ip_address(ip).is_private or ipaddress.ip_address(ip).is_loopback:
-                        logger.error(f"[SOAR] SSRF Blocked: Webhook points to internal IP {ip}")
+                    if (
+                        ipaddress.ip_address(ip).is_private
+                        or ipaddress.ip_address(ip).is_loopback
+                    ):
+                        logger.error(
+                            f"[SOAR] SSRF Blocked: Webhook points to internal IP {ip}"
+                        )
                         continue
                 except Exception as e:
                     logger.error(f"[SOAR] Invalid webhook hostname: {e}")
                     continue
                 headers = {"Content-Type": "application/json"}
                 headers.update(self.custom_headers)
-                resp = requests.post(self.webhook_url, json=payload, headers=headers, timeout=10)
+                resp = requests.post(
+                    self.webhook_url, json=payload, headers=headers, timeout=10
+                )
                 if resp.status_code < 300:
                     sent += 1
-                    logger.info(f"[SOAR] Alert dispatched: {result.get('diagnosis')} → {self.platform}")
+                    logger.info(
+                        f"[SOAR] Alert dispatched: {result.get('diagnosis')} → {self.platform}"
+                    )
                 else:
-                    logger.warning(f"[SOAR] Webhook returned {resp.status_code}: {resp.text[:200]}")
+                    logger.warning(
+                        f"[SOAR] Webhook returned {resp.status_code}: {resp.text[:200]}"
+                    )
             except Exception as e:
                 logger.error(f"[SOAR] Webhook failed: {e}")
         return sent

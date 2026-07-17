@@ -8,6 +8,7 @@ NOTE: This module *simulates* AI-driven deception.  A production
       deployment would integrate with real reverse-proxy middleware
       (e.g., Envoy WASM filter) to intercept live traffic.
 """
+
 import logging
 import secrets
 import uuid
@@ -23,7 +24,12 @@ class PolymorphicDeceptionCore:
     The Red AI analyzes attacker payloads when the honeypot is triggered.
     """
 
-    MUTATION_PATHS: List[str] = ["/v2/internal", "/api/beta", "/sys/admin", "/debug/health"]
+    MUTATION_PATHS: List[str] = [
+        "/v2/internal",
+        "/api/beta",
+        "/sys/admin",
+        "/debug/health",
+    ]
 
     def __init__(self, max_honeypots: int = 100) -> None:
         self.active_honeypots: Dict[str, Dict[str, Any]] = {}

@@ -1,56 +1,68 @@
-name: DevSecOps API Fuzzing (BOLA Strike)
+name: BOLA Strike CI
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [master]
   pull_request:
-    branches: [ "main" ]
-  schedule:
-    - cron: '0 2 * * 1' # Run every Monday at 2 AM
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bola-strike-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  bola_strike_audit:
+  python-quality:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-        cache: 'pip'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r Tools/API_Logic_Fuzzer/requirements.txt
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
 
-    - name: Lint with Ruff
-      run: |
-        pip install ruff
-        ruff check Tools/API_Logic_Fuzzer/ --output-format=github
+      - name: Lint
+        run: python -m ruff check bola_strike.py cli_runner.py backend tests
 
-    - name: Run BOLA Strike Analysis
-      working-directory: Tools/API_Logic_Fuzzer
-      run: |
-        python bola_strike.py -c config.yaml --sarif results.sarif --html report.html --cef findings.cef --evidence evidence/
-      env:
-        # Pass secrets securely from GH Actions
-        ATTACKER_TOKEN: ${{ secrets.ATTACKER_TOKEN }}
-        VICTIM_TOKEN: ${{ secrets.VICTIM_TOKEN }}
-        BOLA_API_KEY: ${{ secrets.BOLA_API_KEY }}
+      - name: Compile Python sources
+        run: python -m compileall -q bola_strike.py cli_runner.py backend
 
-    - name: Upload SARIF file for GitHub Advanced Security
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: Tools/API_Logic_Fuzzer/results.sarif
-        category: bola-strike-analysis
+      - name: Run unit tests
+        run: python -m pytest -q
 
-    - name: Upload HTML Executive Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: bola-strike-report
-        path: Tools/API_Logic_Fuzzer/report.html
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build

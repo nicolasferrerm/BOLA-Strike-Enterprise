@@ -18,7 +18,9 @@ from typing import List, Dict, Any
 from app.version import __version__
 
 
-def generate_sarif(results: List[Dict[str, Any]], target_url: str = "") -> Dict[str, Any]:
+def generate_sarif(
+    results: List[Dict[str, Any]], target_url: str = ""
+) -> Dict[str, Any]:
     """
     Generate a SARIF v2.1.0 compliant document from BOLA Strike findings.
 
@@ -50,23 +52,29 @@ def generate_sarif(results: List[Dict[str, Any]], target_url: str = "") -> Dict[
 
             help_text = f"**CWE:** {res.get('cwe', 'N/A')}\n"
             if owasp:
-                help_text += f"**OWASP API:** {owasp.get('id', '')} — {owasp.get('name', '')}\n"
+                help_text += (
+                    f"**OWASP API:** {owasp.get('id', '')} — {owasp.get('name', '')}\n"
+                )
             if mitre:
                 help_text += f"**MITRE ATT&CK:** {mitre.get('tactic', '')} / {mitre.get('technique', '')} — {mitre.get('technique_name', '')}\n"
 
-            rules.append({
-                "id": rule_id,
-                "name": rule_id,
-                "shortDescription": {"text": diagnosis},
-                "fullDescription": {"text": res.get("remediation", diagnosis)},
-                "help": {"text": help_text, "markdown": help_text},
-                "defaultConfiguration": {"level": severity_level},
-                "properties": {
-                    "tags": ["security", "api", "bola-strike"],
-                    "precision": "high",
-                    "security-severity": _severity_to_score(res.get("severity", "INFO"))
+            rules.append(
+                {
+                    "id": rule_id,
+                    "name": rule_id,
+                    "shortDescription": {"text": diagnosis},
+                    "fullDescription": {"text": res.get("remediation", diagnosis)},
+                    "help": {"text": help_text, "markdown": help_text},
+                    "defaultConfiguration": {"level": severity_level},
+                    "properties": {
+                        "tags": ["security", "api", "bola-strike"],
+                        "precision": "high",
+                        "security-severity": _severity_to_score(
+                            res.get("severity", "INFO")
+                        ),
+                    },
                 }
-            })
+            )
 
         # Build the result entry
         message_text = (
@@ -82,33 +90,42 @@ def generate_sarif(results: List[Dict[str, Any]], target_url: str = "") -> Dict[
             "ruleIndex": list(rule_ids_seen).index(rule_id),
             "level": severity_level,
             "message": {"text": message_text},
-            "locations": [{
-                "physicalLocation": {
-                    "artifactLocation": {
-                        "uri": res.get("path", "/unknown"),
-                        "uriBaseId": "API_ROOT"
-                    }
-                },
-                "logicalLocations": [{
-                    "fullyQualifiedName": f"{res.get('method', 'GET')} {res.get('path', '/')}",
-                    "kind": "endpoint"
-                }]
-            }],
+            "locations": [
+                {
+                    "physicalLocation": {
+                        "artifactLocation": {
+                            "uri": res.get("path", "/unknown"),
+                            "uriBaseId": "API_ROOT",
+                        }
+                    },
+                    "logicalLocations": [
+                        {
+                            "fullyQualifiedName": f"{res.get('method', 'GET')} {res.get('path', '/')}",
+                            "kind": "endpoint",
+                        }
+                    ],
+                }
+            ],
             "properties": {
                 "severity": res.get("severity", "INFO"),
                 "cwe": res.get("cwe", "N/A"),
                 "diff_ratio": res.get("diff_ratio", 0),
-                "timestamp": res.get("timestamp", datetime.datetime.now(datetime.timezone.utc).isoformat())
-            }
+                "timestamp": res.get(
+                    "timestamp",
+                    datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                ),
+            },
         }
 
         # Attach PoC if available
         curl_poc = res.get("curl_poc", "")
         if curl_poc:
-            sarif_result["attachments"] = [{
-                "description": {"text": "cURL Proof of Concept command"},
-                "artifactLocation": {"uri": f"poc_{idx}.sh"}
-            }]
+            sarif_result["attachments"] = [
+                {
+                    "description": {"text": "cURL Proof of Concept command"},
+                    "artifactLocation": {"uri": f"poc_{idx}.sh"},
+                }
+            ]
             sarif_result["properties"]["curl_poc"] = curl_poc
 
         sarif_results.append(sarif_result)
@@ -117,28 +134,34 @@ def generate_sarif(results: List[Dict[str, Any]], target_url: str = "") -> Dict[
     sarif_doc = {
         "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
         "version": "2.1.0",
-        "runs": [{
-            "tool": {
-                "driver": {
-                    "name": "BOLA Strike Enterprise",
-                    "version": __version__,
-                    "informationUri": "https://github.com/nicolasferrerm/bola_strike",
-                    "semanticVersion": __version__,
-                    "rules": rules
-                }
-            },
-            "results": sarif_results,
-            "originalUriBaseIds": {
-                "API_ROOT": {
-                    "uri": target_url or "http://unknown",
-                    "description": {"text": "The base URL of the target API"}
-                }
-            },
-            "invocations": [{
-                "executionSuccessful": True,
-                "startTimeUtc": datetime.datetime.now(datetime.timezone.utc).isoformat()
-            }]
-        }]
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "BOLA Strike Enterprise",
+                        "version": __version__,
+                        "informationUri": "https://github.com/nicolasferrerm/bola_strike",
+                        "semanticVersion": __version__,
+                        "rules": rules,
+                    }
+                },
+                "results": sarif_results,
+                "originalUriBaseIds": {
+                    "API_ROOT": {
+                        "uri": target_url or "http://unknown",
+                        "description": {"text": "The base URL of the target API"},
+                    }
+                },
+                "invocations": [
+                    {
+                        "executionSuccessful": True,
+                        "startTimeUtc": datetime.datetime.now(
+                            datetime.timezone.utc
+                        ).isoformat(),
+                    }
+                ],
+            }
+        ],
     }
 
     return sarif_doc
@@ -147,12 +170,13 @@ def generate_sarif(results: List[Dict[str, Any]], target_url: str = "") -> Dict[
 def export_sarif(results: List[Dict[str, Any]], output_path: str, target_url: str = ""):
     """Generate and write SARIF to a file."""
     sarif = generate_sarif(results, target_url)
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(sarif, f, indent=2)
     return output_path
 
 
 # --- Private Helpers ---
+
 
 def _diagnosis_to_rule_id(diagnosis: str) -> str:
     """Convert a diagnosis string to a SARIF rule ID."""
@@ -161,7 +185,7 @@ def _diagnosis_to_rule_id(diagnosis: str) -> str:
         return "BOLA_STRIKE_BFLA"
     elif "BOLA" in diag and "STATE" in diag:
         return "BOLA_STRIKE_BOLA_STATE_MUTATION"
-    elif re.search(r'\b(MA|MASS)\b', diag):
+    elif re.search(r"\b(MA|MASS)\b", diag):
         return "BOLA_STRIKE_MASS_ASSIGNMENT"
     elif "BOLA" in diag:
         return "BOLA_STRIKE_BOLA"

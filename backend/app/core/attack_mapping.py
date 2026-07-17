@@ -17,25 +17,25 @@ OWASP_API_MAP = {
         "id": "API1:2023",
         "name": "Broken Object Level Authorization",
         "url": "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/",
-        "description": "APIs expose endpoints that handle object identifiers, creating a wide attack surface of Object Level Access Control issues."
+        "description": "APIs expose endpoints that handle object identifiers, creating a wide attack surface of Object Level Access Control issues.",
     },
     "BFLA": {
         "id": "API5:2023",
         "name": "Broken Function Level Authorization",
         "url": "https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/",
-        "description": "Complex access control policies with different hierarchies, groups, and roles can lead to authorization flaws."
+        "description": "Complex access control policies with different hierarchies, groups, and roles can lead to authorization flaws.",
     },
     "MA": {
         "id": "API3:2023",
         "name": "Broken Object Property Level Authorization (BOPLA)",
         "url": "https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/",
-        "description": "Lack of or improper authorization validation at object property level leads to information exposure or manipulation."
+        "description": "Lack of or improper authorization validation at object property level leads to information exposure or manipulation.",
     },
     "AUTH": {
         "id": "API2:2023",
         "name": "Broken Authentication",
         "url": "https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/",
-        "description": "Authentication mechanisms are often implemented incorrectly, allowing attackers to compromise authentication tokens."
+        "description": "Authentication mechanisms are often implemented incorrectly, allowing attackers to compromise authentication tokens.",
     },
 }
 
@@ -46,28 +46,28 @@ MITRE_ATTACK_MAP = {
         "technique": "T1530",
         "technique_name": "Data from Cloud Storage Object",
         "description": "Adversary accesses data objects belonging to other users by manipulating object references.",
-        "url": "https://attack.mitre.org/techniques/T1530/"
+        "url": "https://attack.mitre.org/techniques/T1530/",
     },
     "BFLA": {
         "tactic": "TA0004 - Privilege Escalation",
         "technique": "T1548",
         "technique_name": "Abuse Elevation Control Mechanism",
         "description": "Adversary bypasses function-level access controls to perform administrative actions.",
-        "url": "https://attack.mitre.org/techniques/T1548/"
+        "url": "https://attack.mitre.org/techniques/T1548/",
     },
     "MA": {
         "tactic": "TA0005 - Defense Evasion",
         "technique": "T1036",
         "technique_name": "Masquerading",
         "description": "Adversary manipulates object properties (role, permissions) to escalate privileges via mass assignment.",
-        "url": "https://attack.mitre.org/techniques/T1036/"
+        "url": "https://attack.mitre.org/techniques/T1036/",
     },
     "STATE_MUTATION": {
         "tactic": "TA0040 - Impact",
         "technique": "T1565.001",
         "technique_name": "Stored Data Manipulation",
         "description": "Adversary mutates state of another user's resource via unauthorized write operations.",
-        "url": "https://attack.mitre.org/techniques/T1565/001/"
+        "url": "https://attack.mitre.org/techniques/T1565/001/",
     },
 }
 
@@ -113,7 +113,7 @@ def classify_finding(diagnosis: str) -> str:
         return "BFLA"
     elif "BOLA" in diag_upper and "STATE" in diag_upper:
         return "STATE_MUTATION"
-    elif re.search(r'\b(MA|MASS)\b', diag_upper):
+    elif re.search(r"\b(MA|MASS)\b", diag_upper):
         return "MA"
     elif "BOLA" in diag_upper:
         return "BOLA"

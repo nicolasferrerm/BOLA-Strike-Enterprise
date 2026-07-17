@@ -6,6 +6,7 @@ Architecture (ZTA) and cross-tenant authorization boundaries.
 The signing secret MUST be provided externally (environment variable or
 constructor argument).  No default secrets are embedded in source code.
 """
+
 import base64
 import hashlib
 import hmac
@@ -62,9 +63,7 @@ class IdPMatrixFuzzer:
         raw = json.dumps(data, separators=(",", ":")).encode("utf-8")
         return base64.urlsafe_b64encode(raw).decode("utf-8").rstrip("=")
 
-    def generate_ephemeral_jwt(
-        self, tenant_id: str, role: str, subject: str
-    ) -> str:
+    def generate_ephemeral_jwt(self, tenant_id: str, role: str, subject: str) -> str:
         """Forge a valid HS256 JWT for a specific tenant and role.
 
         Args:
